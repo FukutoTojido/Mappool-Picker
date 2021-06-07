@@ -18,6 +18,8 @@ let stats = document.getElementById("stats");
 // Chats
 let chats = document.getElementById("chats");
 
+const beatmaps = new Set(); // Store beatmapID;
+
 socket.onopen = () => {
     console.log("Successfully Connected");
 };
@@ -42,11 +44,7 @@ let gameState;
 let chatLen = 0;
 let tempClass = 'unknown';
 
-let isCalled = false;
-
-/*let bg = document.createElement("bg");
-bg.style.cssText = "position: absolute; top: 0px; left: 0px; width: 1920px; height: 540px; background-color: #fff; color: #161616";
-document.getElementById("main").appendChild(bg);*/
+let hasSetup = false;
 
 class Beatmap {
     constructor(modid, mapid, top, left, layerName) {
@@ -58,60 +56,52 @@ class Beatmap {
         this.user = {};
     }
     generate() {
-        this.bg = document.createElement(this.layerName);
-        this.map = document.createElement(`${this.layerName}BG`);
-        this.overlay = document.createElement(`${this.layerName}Overlay`);
-        this.metadata = document.createElement(`${this.layerName}META`);
-        this.difficulty = document.createElement(`${this.layerName}DIFF`);
-        this.metadata.style.cssText = `position: absolute; top: ${this.top + 30}px; left: ${this.left + 20}px; width: 500px; color: #fff; font-family: Exo2; font-size: 15px; line-height: 30px; text-shadow: 0 2px 3px black;`;
-        this.difficulty.style.cssText = `position: absolute; top: ${this.top + 50}px; left: ${this.left + 20}px; width: 500px; color: #fff; font-family: Exo2; font-size: 15px; line-height: 30px; text-shadow: 0 2px 3px black;`;
-        this.map.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: 500px; height: 100px; background-color: #161616; background-size: 100%; background-position: center center; color: #161616; border-radius: 10px; box-shadow: 0px 5px 20px -3px black;`;
-        this.overlay.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: 500px; height: 100px; background-color: #000; border-radius: 10px; opacity: 40%`;
-        this.bg.style.cssText = `position: absolute; top: ${this.top + 85}px; left: ${this.left + 250}px; width: 250px; height: 30px; background-color: #161616; color: #fff; border-radius: 15px; box-shadow: 0px 5px 20px -3px black;`;
-        document.getElementById("main").appendChild(this.map);
-        document.getElementById("main").appendChild(this.overlay);
-        document.getElementById("main").appendChild(this.metadata);
-        document.getElementById("main").appendChild(this.difficulty);
-        document.getElementById("main").appendChild(this.bg);
+        let main = document.getElementById("main");
+
+        this.clicker = document.createElement("div");
+        this.clicker.id = `${this.layerName}Clicker`;
+
+        main.appendChild(this.clicker);
+        let clickerObj = document.getElementById(this.clicker.id);
+
+        this.bg = document.createElement("div");
+        this.map = document.createElement("div");
+        this.overlay = document.createElement("div");
+        this.metadata = document.createElement("div");
+        this.difficulty = document.createElement("div");
+        this.stats = document.createElement("div");
+
+        this.bg.id = this.layerName;
+        this.map.id = `${this.layerName}BG`;
+        this.overlay.id = `${this.layerName}Overlay`;
+        this.metadata.id = `${this.layerName}META`;
+        this.difficulty.id = `${this.layerName}DIFF`;
+        this.stats.id = `${this.layerName}Stats`;
+
+        this.metadata.style.cssText = `position: absolute; top: 30px; left: 20px; width: 500px; color: #fff; font-family: Exo2; font-size: 15px; line-height: 30px; text-shadow: 0 2px 3px black;`;
+        this.difficulty.style.cssText = `position: absolute; top: 50px; left: 20px; width: 500px; color: #fff; font-family: Exo2; font-size: 15px; line-height: 30px; text-shadow: 0 2px 3px black;`;
+        this.map.style.cssText = `position: absolute; top: 0px; left: 0px; width: 500px; height: 100px; background-color: #161616; background-size: 100%; background-position: center center; color: #161616; border-radius: 10px; box-shadow: 0px 5px 20px -3px black;`;
+        this.overlay.style.cssText = `position: absolute; top: 0px; left: 0px; width: 500px; height: 100px; background-color: #000; border-radius: 10px; opacity: 40%`;
+        this.bg.style.cssText = `position: absolute; top: 85px; left: 100px; width: 400px; height: 30px; background-color: #161616; color: #fff; border-radius: 15px; box-shadow: 0px 5px 20px -3px black;`;
+        this.stats.style.cssText = `position: absolute; top: 85px; left: 120px; width: 360px; color: #fff; font-family: Exo2; font-size: 15px; line-height: 30px; text-shadow: 0 2px 3px black; text-align: center`;
+        this.clicker.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: 500px; height: 130px; transition: ease-in-out 200ms;`;
+
+        clickerObj.appendChild(this.map);
+        clickerObj.appendChild(this.overlay);
+        clickerObj.appendChild(this.metadata);
+        clickerObj.appendChild(this.difficulty);
+        clickerObj.appendChild(this.bg);
+        clickerObj.appendChild(this.stats);
+    }
+    grayedOut() {
+        this.overlay.style.cssText = `position: absolute; top: 0px; left: 0px; width: 500px; height: 100px; background-color: #000; border-radius: 10px; opacity: 100%`;
     }
 }
-
-let map1 = new Beatmap(1, 3015906, 50, 105, "map1");
-map1.generate();
-let map2 = new Beatmap(1, 3021758, 50, 710, "map2");
-map2.generate();
-let map3 = new Beatmap(1, 2994883, 50, 1315, "map3");
-map3.generate();
-let map4 = new Beatmap(1, 2747949, 180, 105, "map4");
-map4.generate();
-let map5 = new Beatmap(1, 2943226, 310, 105, "map5");
-map5.generate();
 
 socket.onmessage = async(event) => {
     let data = JSON.parse(event.data);
 
-    if (!isCalled) {
-        isCalled = true;
-
-        const map1_api = await ObjectReturn(map1.mapid);
-        const map2_api = await ObjectReturn(map2.mapid);
-        const map3_api = await ObjectReturn(map3.mapid);
-        const map4_api = await ObjectReturn(map4.mapid);
-        const map5_api = await ObjectReturn(map5.mapid);
-
-        map1.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${map1_api.beatmapset_id}/covers/cover.jpg')`;
-        map2.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${map2_api.beatmapset_id}/covers/cover.jpg')`;
-        map3.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${map3_api.beatmapset_id}/covers/cover.jpg')`;
-        map4.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${map4_api.beatmapset_id}/covers/cover.jpg')`;
-        map5.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${map5_api.beatmapset_id}/covers/cover.jpg')`;
-
-        map1.metadata.innerHTML = map1_api.artist + ' - ' + map1_api.title;
-        map1.difficulty.innerHTML = "Difficulty: " + map1_api.version + '&emsp;&emsp;Mapper: ' + map1_api.creator;
-        map2.metadata.innerHTML = map2_api.artist + ' - ' + map2_api.title;
-        map2.difficulty.innerHTML = "Difficulty: " + map2_api.version + '&emsp;&emsp;Mapper: ' + map2_api.creator;
-    }
-    //bg.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(user, data, 3015906)}/covers/cover.jpg')`;
-    //bg.innerHTML = ObjectReturn(user, data, 1848250);
+    if (!hasSetup) setupBeatmaps();
 
     if (tempImg !== data.menu.bm.path.full) {
         tempImg = data.menu.bm.path.full;
@@ -183,7 +173,40 @@ socket.onmessage = async(event) => {
 
 };
 
-async function ObjectReturn(mapid) {
+function setupBeatmaps() {
+    hasSetup = true;
+
+    const bms = [
+        { beatmapId: 3015906, mods: "" },
+        { beatmapId: 1848250, mods: "HR" },
+        { beatmapId: 2994883, mods: "DT" },
+        { beatmapId: 2747949, mods: "HD" },
+        { beatmapId: 2943226, mods: "FM" },
+        { beatmapId: 2931958, mods: "FM" },
+        { beatmapId: 2566810, mods: "FM" },
+    ]; // For testing only
+
+    let row = -1;
+    bms.map(async(beatmap, index) => {
+        if (index % 3 === 0) row++;
+        const bm = new Beatmap(beatmap.mods, beatmap.beatmapId, 130 * row + 50, 500 * (index % 3) + 105 * (index % 3 + 1), `map${index}`);
+        bm.generate();
+        bm.clicker.onmouseover = function() {
+            bm.clicker.style.transform = "translateY(-10px)";
+        }
+        bm.clicker.onmouseleave = function() {
+            bm.clicker.style.transform = "translateY(0px)";
+        }
+        const mapData = await getDataSet(beatmap.beatmapId);
+        bm.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${mapData.beatmapset_id}/covers/cover.jpg')`;
+        bm.metadata.innerHTML = mapData.artist + ' - ' + mapData.title;
+        bm.difficulty.innerHTML = "Difficulty: " + mapData.version + '&emsp;&emsp;Mapper: ' + mapData.creator;
+        bm.stats.innerHTML = "CS: " + mapData.diff_size + '&emsp;AR: ' + mapData.diff_approach + '&emsp;OD: ' + mapData.diff_overall + '&emsp;HP: ' + mapData.diff_drain + '&emsp;Star Rating: ' + parseFloat(mapData.difficultyrating).toFixed(2) + '*';
+        beatmaps.add(bm);
+    });
+}
+
+async function getDataSet(mapid) {
     try {
         const data = (
             await axios.get("/get_beatmaps", {
