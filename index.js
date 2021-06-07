@@ -48,7 +48,7 @@ let isCalled = false;
 bg.style.cssText = "position: absolute; top: 0px; left: 0px; width: 1920px; height: 540px; background-color: #fff; color: #161616";
 document.getElementById("main").appendChild(bg);*/
 
-class Map {
+class Beatmap {
     constructor(modid, mapid, top, left, layerName) {
         this.modid = modid;
         this.mapid = mapid;
@@ -76,15 +76,15 @@ class Map {
     }
 }
 
-let map1 = new Map(1, 3015906, 50, 105, "map1");
+let map1 = new Beatmap(1, 3015906, 50, 105, "map1");
 map1.generate();
-let map2 = new Map(1, 3021758, 50, 710, "map2");
+let map2 = new Beatmap(1, 3021758, 50, 710, "map2");
 map2.generate();
-let map3 = new Map(1, 2994883, 50, 1315, "map3");
+let map3 = new Beatmap(1, 2994883, 50, 1315, "map3");
 map3.generate();
-let map4 = new Map(1, 2747949, 180, 105, "map4");
+let map4 = new Beatmap(1, 2747949, 180, 105, "map4");
 map4.generate();
-let map5 = new Map(1, 2943226, 310, 105, "map5");
+let map5 = new Beatmap(1, 2943226, 310, 105, "map5");
 map5.generate();
 
 socket.onmessage = async(event) => {
