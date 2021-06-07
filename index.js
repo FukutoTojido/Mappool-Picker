@@ -1,5 +1,5 @@
 // PASTE YOUR API HERE
-let api = "";
+let api = "93b604f82c572fd50f823258ce5aac78df5d3e3c";
 
 // START
 let socket = new ReconnectingWebSocket("ws://127.0.0.1:24050/ws");
@@ -18,17 +18,19 @@ let stats = document.getElementById("stats");
 // Chats
 let chats = document.getElementById("chats");
 
+const beatmaps = new Set(); // Store beatmapID;
+
 socket.onopen = () => {
-    console.log("Successfully Connected");
+	console.log("Successfully Connected");
 };
 
-socket.onclose = event => {
-    console.log("Socket Closed Connection: ", event);
-    socket.send("Client Closed!");
+socket.onclose = (event) => {
+	console.log("Socket Closed Connection: ", event);
+	socket.send("Client Closed!");
 };
 
-socket.onerror = error => {
-    console.log("Socket Error: ", error);
+socket.onerror = (error) => {
+	console.log("Socket Error: ", error);
 };
 
 let tempUID;
@@ -40,90 +42,118 @@ let tempSR, tempCS, tempAR, tempOD, tempHP;
 let gameState;
 
 let chatLen = 0;
-let tempClass = 'unknown';
+let tempClass = "unknown";
+
+let hasSetup = false;
 
 /*let bg = document.createElement("bg");
 bg.style.cssText = "position: absolute; top: 0px; left: 0px; width: 1920px; height: 540px; background-color: #fff; color: #161616";
 document.getElementById("main").appendChild(bg);*/
 
-function ObjectReturn(user, data, mapid) {
-    let getUser = async() => {
-        try {
-            const response = await axios.get("/get_beatmaps", {
-                baseURL: "https://osu.ppy.sh/api",
-                params: {
-                    k: `${api}`,
-                    b: `${mapid}`,
-                },
-            });
-            return response.data[0];
-        } catch (error) {
-            console.error(error);
-        }
-    };
-    Promise.resolve(getUser()).then((data) => Object.assign(user, data));
+class Beatmap {
+	constructor(modId, beatmapId, top, left, layerName) {
+		this.width = 500;
+		this.height = 100;
 
-    return user;
-};
+		this.modId = modId;
+		this.beatmapId = beatmapId;
+		this.top = top;
+		this.left = left;
+		this.layerName = layerName;
+		this.user = {};
 
-class Map {
-    constructor(modid, mapid, width, height, top, left, layerName) {
-        this.modid = modid;
-        this.mapid = mapid;
-        this.width = width;
-        this.height = height;
-        this.top = top;
-        this.left = left;
-        this.layerName = layerName;
-        this.user = {};
-    }
-    generate() {
-        this.bg = document.createElement(this.layerName);
-        this.map = document.createElement(`${this.layerName}BG`);
-        this.map.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: ${this.width}px; height: ${this.height}px; background-color: #161616; background-size: 100%; background-position: center center; color: #161616; border-radius: 10px`;
-        this.bg.style.cssText = `position: absolute; top: ${this.top + this.height - 15}px; left: ${this.left + this.width * 0.5}px; width: ${this.width * 0.5}px; height: 30px; background-color: #161616; color: #fff; border-radius: 15px`;
-        document.getElementById("main").appendChild(this.map);
-        document.getElementById("main").appendChild(this.bg);
-    }
+		this.bg = document.createElement(this.layerName);
+		this.map = document.createElement(`${this.layerName}_bg`);
+		this.overlay = document.createElement(`${this.layerName}_overlay`);
+		this.metadata = document.createElement(`${this.layerName}_meta`);
+		this.difficulty = document.createElement(
+			`${this.layerName}_difficulty`,
+		);
+		this.metadata.style.cssText = `position: absolute; top: ${
+			this.top + 30
+		}px; left: ${
+			this.left + 20
+		}px; width: 500px; color: #fff; font-family: Exo2; font-size: 15px; line-height: 30px; text-shadow: 0 2px 3px black;`;
+		this.difficulty.style.cssText = `position: absolute; top: ${
+			this.top + 50
+		}px; left: ${
+			this.left + 20
+		}px; width: 500px; color: #fff; font-family: Exo2; font-size: 15px; line-height: 30px; text-shadow: 0 2px 3px black;`;
+		this.map.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: 500px; height: 100px; background-color: #161616; background-size: 100%; background-position: center center; color: #161616; border-radius: 10px; box-shadow: 0px 5px 20px -3px black;`;
+		this.overlay.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: 500px; height: 100px; background-color: #000; border-radius: 10px; opacity: 40%`;
+		this.bg.style.cssText = `position: absolute; top: ${
+			this.top + 85
+		}px; left: ${
+			this.left + 250
+		}px; width: 250px; height: 30px; background-color: #161616; color: #fff; border-radius: 15px; box-shadow: 0px 5px 20px -3px black;`;
+		document.getElementById("main").appendChild(this.map);
+		document.getElementById("main").appendChild(this.overlay);
+		document.getElementById("main").appendChild(this.metadata);
+		document.getElementById("main").appendChild(this.difficulty);
+		document.getElementById("main").appendChild(this.bg);
+	}
 }
 
-let map1 = new Map(1, 2996394, 500, 100, 0, 0, "map1");
-map1.generate();
-let map2 = new Map(1, 3015906, 500, 100, 500, 500, "map2");
-map2.generate();
+let map1 = new Beatmap(1, 2996394, 0, 0, "map1");
+let map2 = new Beatmap(1, 3015906, 500, 500, "map2");
 
-socket.onmessage = event => {
-    let data = JSON.parse(event.data);
+socket.onmessage = async (event) => {
+	let data = JSON.parse(event.data);
 
-    map1.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(map1.user, data, map1.mapid).beatmapset_id}/covers/cover.jpg')`;
-    map2.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(map2.user, data, map2.mapid).beatmapset_id}/covers/cover.jpg')`;
-    //bg.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(user, data, 3015906)}/covers/cover.jpg')`;
-    //bg.innerHTML = ObjectReturn(user, data, 1848250);
+	if (!hasSetup) setupBeatmaps();
 
-    if (tempImg !== data.menu.bm.path.full) {
-        tempImg = data.menu.bm.path.full;
-        data.menu.bm.path.full = data.menu.bm.path.full.replace(/#/g, '%23').replace(/%/g, '%25').replace(/\\/g, '/');
-        nowPlayingContainer.style.backgroundImage = `url('http://127.0.0.1:24050/Songs/${data.menu.bm.path.full}?a=${Math.random(10000)}')`;
-    }
-    if (tempMapID !== data.menu.bm.id || tempSR !== data.menu.bm.stats.fullSR) {
-        tempMapID = data.menu.bm.id;
-        tempMapArtist = data.menu.bm.metadata.artist;
-        tempMapTitle = data.menu.bm.metadata.title;
-        tempMapDiff = '[' + data.menu.bm.metadata.difficulty + ']';
-        tempMapper = data.menu.bm.metadata.mapper;
+	//bg.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(user, data, 3015906)}/covers/cover.jpg')`;
+	//bg.innerHTML = ObjectReturn(user, data, 1848250);
 
-        tempCS = data.menu.bm.stats.CS;
-        tempAR = data.menu.bm.stats.AR;
-        tempOD = data.menu.bm.stats.OD;
-        tempHP = data.menu.bm.stats.HP;
-        tempSR = data.menu.bm.stats.fullSR;
+	if (tempImg !== data.menu.bm.path.full) {
+		tempImg = data.menu.bm.path.full;
+		data.menu.bm.path.full = data.menu.bm.path.full
+			.replace(/#/g, "%23")
+			.replace(/%/g, "%25")
+			.replace(/\\/g, "/");
+		nowPlayingContainer.style.backgroundImage = `url('http://127.0.0.1:24050/Songs/${
+			data.menu.bm.path.full
+		}?a=${Math.random(10000)}')`;
+	}
+	if (tempMapID !== data.menu.bm.id || tempSR !== data.menu.bm.stats.fullSR) {
+		tempMapID = data.menu.bm.id;
+		tempMapArtist = data.menu.bm.metadata.artist;
+		tempMapTitle = data.menu.bm.metadata.title;
+		tempMapDiff = "[" + data.menu.bm.metadata.difficulty + "]";
+		tempMapper = data.menu.bm.metadata.mapper;
 
-        mapName.innerHTML = tempMapArtist + ' - ' + tempMapTitle;
-        mapInfo.innerHTML = 'Difficulty: ' + tempMapDiff + '&emsp;&emsp;&emsp;&emsp;' + 'Mapper: ' + tempMapper;
-        stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'Star Rating: ' + tempSR + '*';
-    }
+		tempCS = data.menu.bm.stats.CS;
+		tempAR = data.menu.bm.stats.AR;
+		tempOD = data.menu.bm.stats.OD;
+		tempHP = data.menu.bm.stats.HP;
+		tempSR = data.menu.bm.stats.fullSR;
 
-    /*if (chatLen != data.tourney.manager.chat.length) {
+		mapName.innerHTML = tempMapArtist + " - " + tempMapTitle;
+		mapInfo.innerHTML =
+			"Difficulty: " +
+			tempMapDiff +
+			"&emsp;&emsp;&emsp;&emsp;" +
+			"Mapper: " +
+			tempMapper;
+		stats.innerHTML =
+			"CS: " +
+			tempCS +
+			"&emsp;" +
+			"AR: " +
+			tempAR +
+			"&emsp;" +
+			"OD: " +
+			tempOD +
+			"&emsp;" +
+			"HP: " +
+			tempHP +
+			"&emsp;" +
+			"Star Rating: " +
+			tempSR +
+			"*";
+	}
+
+	/*if (chatLen != data.tourney.manager.chat.length) {
         // There's new chats that haven't been updated
 
         if (chatLen == 0 || (chatLen > 0 && chatLen > data.tourney.manager.chat.length)) {
@@ -167,5 +197,49 @@ socket.onmessage = event => {
         // Update the scroll so it's sticks at the bottom by default
         chats.scrollTop = chats.scrollHeight;
     }*/
+};
 
+function setupBeatmaps() {
+	hasSetup = true;
+
+	const bms = [
+		{ beatmapId: 3015906, mods: "" },
+		{ beatmapId: 1848250, mods: "HR" },
+		{ beatmapId: 2994883, mods: "DT" },
+		{ beatmapId: 2747949, mods: "HD" },
+		{ beatmapId: 2943226, mods: "FM" },
+	]; // For testing only
+
+	let row = -1;
+	bms.map(async (beatmap, index) => {
+		if (index % 3 === 0) row++;
+		const bm = new Beatmap(
+			beatmap.mods,
+			beatmap.beatmapId,
+			200 * row,
+			500 * (index % 3),
+			`map${index}`,
+		);
+		const mapsetId = await getMapsetID(beatmap.beatmapId);
+		if (mapsetId)
+			bm.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${mapsetId}/covers/cover.jpg')`;
+		beatmaps.add(bm);
+	});
+}
+
+async function getMapsetID(beatmap_id) {
+	try {
+		const data = (
+			await axios.get("/get_beatmaps", {
+				baseURL: "https://osu.ppy.sh/api",
+				params: {
+					k: api,
+					b: beatmap_id,
+				},
+			})
+		)["data"];
+		return data.length !== 0 ? data[0].beatmapset_id : null;
+	} catch (error) {
+		console.error(error);
+	}
 }
