@@ -63,7 +63,7 @@ function ObjectReturn(user, data, mapid) {
     };
     Promise.resolve(getUser()).then((data) => Object.assign(user, data));
 
-    return user.beatmapset_id;
+    return user;
 };
 
 class Map {
@@ -75,27 +75,28 @@ class Map {
         this.top = top;
         this.left = left;
         this.layerName = layerName;
+        this.user = {};
     }
     generate() {
         this.bg = document.createElement(this.layerName);
         this.map = document.createElement(`${this.layerName}BG`);
-        this.bg.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: ${this.width}px; height: ${this.height}px; background-color: #fff; color: #161616`;
-        this.map.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: ${this.width}px; height: ${this.height / 2}px; background-color: #161616; color: #161616`;
-        document.getElementById("main").appendChild(this.bg);
+        this.map.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: ${this.width}px; height: ${this.height}px; background-color: #161616; background-size: 100%; background-position: center center; color: #161616; border-radius: 10px`;
+        this.bg.style.cssText = `position: absolute; top: ${this.top + this.height - 15}px; left: ${this.left + this.width * 0.5}px; width: ${this.width * 0.5}px; height: 30px; background-color: #161616; color: #fff; border-radius: 15px`;
         document.getElementById("main").appendChild(this.map);
+        document.getElementById("main").appendChild(this.bg);
     }
 }
 
-let map1 = new Map(1, 3021758, 960, 540, 0, "map1");
+let map1 = new Map(1, 2996394, 500, 100, 0, 0, "map1");
 map1.generate();
-/*let map2 = new Map(1, 827488, 500, 500, 500, 500, "map2");
-map2.generate();*/
+let map2 = new Map(1, 3015906, 500, 100, 500, 500, "map2");
+map2.generate();
 
 socket.onmessage = event => {
     let data = JSON.parse(event.data);
 
-    map1.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(user, data, map1.mapid)}/covers/cover.jpg')`;
-    //map2.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(user, data, map2.mapid)}/covers/cover.jpg')`;
+    map1.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(map1.user, data, map1.mapid).beatmapset_id}/covers/cover.jpg')`;
+    map2.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(map2.user, data, map2.mapid).beatmapset_id}/covers/cover.jpg')`;
     //bg.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${ObjectReturn(user, data, 3015906)}/covers/cover.jpg')`;
     //bg.innerHTML = ObjectReturn(user, data, 1848250);
 
@@ -104,7 +105,7 @@ socket.onmessage = event => {
         data.menu.bm.path.full = data.menu.bm.path.full.replace(/#/g, '%23').replace(/%/g, '%25').replace(/\\/g, '/');
         nowPlayingContainer.style.backgroundImage = `url('http://127.0.0.1:24050/Songs/${data.menu.bm.path.full}?a=${Math.random(10000)}')`;
     }
-    if (tempMapID !== data.menu.bm.id) {
+    if (tempMapID !== data.menu.bm.id || tempSR !== data.menu.bm.stats.fullSR) {
         tempMapID = data.menu.bm.id;
         tempMapArtist = data.menu.bm.metadata.artist;
         tempMapTitle = data.menu.bm.metadata.title;
@@ -122,7 +123,7 @@ socket.onmessage = event => {
         stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'Star Rating: ' + tempSR + '*';
     }
 
-    if (chatLen != data.tourney.manager.chat.length) {
+    /*if (chatLen != data.tourney.manager.chat.length) {
         // There's new chats that haven't been updated
 
         if (chatLen == 0 || (chatLen > 0 && chatLen > data.tourney.manager.chat.length)) {
@@ -165,6 +166,6 @@ socket.onmessage = event => {
 
         // Update the scroll so it's sticks at the bottom by default
         chats.scrollTop = chats.scrollHeight;
-    }
+    }*/
 
 }
