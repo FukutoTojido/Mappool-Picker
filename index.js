@@ -67,17 +67,18 @@ function ObjectReturn(user, data, mapid) {
 };
 
 class Map {
-    constructor(modid, mapid, width, height, top, left, layer) {
+    constructor(modid, mapid, width, height, top, left, layerName) {
         this.modid = modid;
         this.mapid = mapid;
         this.width = width;
         this.height = height;
         this.top = top;
         this.left = left;
+        this.layerName = layerName;
     }
     generate() {
-        this.bg = document.createElement(this.layer);
-        this.map = document.createElement(this.layer + "PR");
+        this.bg = document.createElement(this.layerName);
+        this.map = document.createElement(`${this.layerName}BG`);
         this.bg.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: ${this.width}px; height: ${this.height}px; background-color: #fff; color: #161616`;
         this.map.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: ${this.width}px; height: ${this.height / 2}px; background-color: #161616; color: #161616`;
         document.getElementById("main").appendChild(this.bg);
@@ -85,7 +86,7 @@ class Map {
     }
 }
 
-let map1 = new Map(1, 3015905, 960, 540, 0, "map1");
+let map1 = new Map(1, 3021758, 960, 540, 0, "map1");
 map1.generate();
 /*let map2 = new Map(1, 827488, 500, 500, 500, 500, "map2");
 map2.generate();*/
