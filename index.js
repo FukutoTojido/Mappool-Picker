@@ -84,15 +84,105 @@ class Beatmap {
         this.mods.id = `${this.layerName}Mods`;
         this.pickedStatus.id = `${this.layerName}STATUS`;
 
-        this.metadata.style.cssText = `position: absolute; top: 0px; left: 20px; width: 460px; color: #fff; font-family: Exo2; font-size: 13px; line-height: 30px; text-shadow: 0 2px 3px black; user-select: none; transition: ease-in-out 200ms; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`;
-        this.difficulty.style.cssText = `position: absolute; top: 20px; left: 20px; width: 460px; color: #fff; font-family: Exo2; font-size: 13px; line-height: 30px; text-shadow: 0 2px 3px black; user-select: none; transition: ease-in-out 200ms; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`;
-        this.map.style.cssText = `position: absolute; top: 0px; left: 0px; width: 500px; height: 60px; background-color: #161616; background-size: 100%; background-position: center center; color: #161616; border-radius: 10px; box-shadow: 0px 5px 20px -3px black; transition: ease-in-out 200ms;`;
-        this.pickedStatus.style.cssText = `position: absolute; top: 50px; left: 100px; width: 100px; height: 20px; color: #fff; line-height: 30px; font-size: 15px; text-align: center; user-select: none; transition: ease-in-out 300ms; opacity: 0%; border-radius: 25px; text-shadow: 0 0 10px black`;
-        this.overlay.style.cssText = `position: absolute; top: 0px; left: 0px; width: 500px; height: 60px; background-color: #000; border-radius: 10px; opacity: 40%; transition: ease-in-out 200ms;`;
-        this.bg.style.cssText = `position: absolute; top: 50px; left: 150px; width: 350px; height: 20px; background-color: #161616; color: #fff; border-radius: 15px; box-shadow: 0px 5px 20px -3px black; transition: ease-in-out 200ms;`;
-        this.stats.style.cssText = `position: absolute; top: 50px; left: 170px; width: 310px; color: #fff; font-family: Exo2; font-size: 13px; line-height: 20px; text-shadow: 0 2px 3px black; text-align: center; user-select: none; transition: ease-in-out 200ms;`;
-        this.mods.style.cssText = `position: absolute; top: 10px; right: -20px; width: 40px; height: 40px; background-size: 100%; background-image: url("./static/${this.modid}.png"); -webkit-filter: drop-shadow(0px 2px 2px #000); filter: drop-shadow(0px 2px 2px #000); transition: ease-in-out 200ms;`;
-        this.clicker.style.cssText = `position: absolute; top: ${this.top}px; left: ${this.left}px; width: 500px; height: 130px; transition: ease-in-out 200ms;`;
+        this.metadata.style.cssText = ` position: absolute; 
+                                        top: 2px; 
+                                        left: 20px; 
+                                        width: 460px; 
+                                        color: #fff; 
+                                        font-family: Exo2; 
+                                        font-size: 14px; 
+                                        line-height: 30px; 
+                                        text-shadow: 0 2px 3px black; 
+                                        user-select: none; 
+                                        transition: ease-in-out 200ms; 
+                                        white-space: nowrap; 
+                                        overflow: hidden; 
+                                        text-overflow: ellipsis;`;
+        this.difficulty.style.cssText = `   position: absolute; 
+                                            top: 20px; 
+                                            left: 20px; 
+                                            width: 460px; 
+                                            color: #fff; 
+                                            font-family: Exo2; 
+                                            font-size: 14px; 
+                                            line-height: 30px; 
+                                            text-shadow: 0 2px 3px black; 
+                                            user-select: none; 
+                                            transition: ease-in-out 200ms; 
+                                            white-space: nowrap; 
+                                            overflow: hidden; 
+                                            text-overflow: ellipsis;`;
+        this.map.style.cssText = `  position: absolute; 
+                                    top: 0px; 
+                                    left: 0px; 
+                                    width: 500px; 
+                                    height: 60px; 
+                                    background-color: #161616; 
+                                    background-size: 100%;
+                                    background-position: center center; 
+                                    color: #161616; 
+                                    border-radius: 10px; 
+                                    box-shadow: 0px 5px 20px -3px black; 
+                                    transition: ease-in-out 200ms;`;
+        this.pickedStatus.style.cssText = ` position: absolute; 
+                                            top: 50px; 
+                                            left: 100px; 
+                                            width: 100px; 
+                                            height: 20px; 
+                                            color: #fff; 
+                                            line-height: 30px; 
+                                            font-size: 15px; 
+                                            text-align: center; 
+                                            user-select: none; 
+                                            transition: ease-in-out 300ms; 
+                                            opacity: 0%; border-radius: 25px; 
+                                            text-shadow: 0 0 10px black`;
+        this.overlay.style.cssText = `  position: absolute; 
+                                        top: 0px; 
+                                        left: 0px; 
+                                        width: 500px; 
+                                        height: 60px; 
+                                        background-color: #000; 
+                                        border-radius: 10px; 
+                                        opacity: 50%; 
+                                        transition: ease-in-out 200ms;`;
+        this.bg.style.cssText = `   position: absolute; 
+                                    top: 50px; left: 150px; 
+                                    width: 350px; 
+                                    height: 20px; 
+                                    background-color: #161616; 
+                                    color: #fff; 
+                                    border-radius: 15px; 
+                                    box-shadow: 0px 5px 20px -3px black; 
+                                    transition: ease-in-out 200ms;`;
+        this.stats.style.cssText = `position: absolute; 
+                                    top: 50px; 
+                                    left: 170px; 
+                                    width: 310px; 
+                                    color: #fff; 
+                                    font-family: Exo2; 
+                                    font-size: 13px; 
+                                    line-height: 20px; 
+                                    text-shadow: 0 2px 3px black; 
+                                    text-align: center; 
+                                    user-select: none; 
+                                    transition: ease-in-out 200ms;`;
+        this.mods.style.cssText = ` position: absolute; 
+                                    top: 10px; 
+                                    right: -20px; 
+                                    width: 40px; 
+                                    height: 40px; 
+                                    background-size: 100%; 
+                                    background-image: url("./static/${this.modid}.png"); 
+                                    -webkit-filter: drop-shadow(0px 2px 2px #000); 
+                                    filter: drop-shadow(0px 2px 2px #000); 
+                                    transition: ease-in-out 200ms;`;
+        this.clicker.style.cssText = `  position: absolute; 
+                                        top: ${this.top}px; 
+                                        left: ${this.left}px; 
+                                        width: 500px; 
+                                        height: 130px; 
+                                        transition: ease-in-out 200ms;`;
 
         clickerObj.appendChild(this.map);
         clickerObj.appendChild(this.overlay);
@@ -189,37 +279,42 @@ function setupBeatmaps() {
     hasSetup = true;
 
     const bms = [
-        { beatmapId: 3015906, mods: "1" },
-        { beatmapId: 1848250, mods: "2" },
-        { beatmapId: 2994883, mods: "1" },
-        { beatmapId: 2747949, mods: "3" },
-        { beatmapId: 2943226, mods: "1" },
-        { beatmapId: 2931958, mods: "2" },
-        { beatmapId: 2566810, mods: "3" },
-        { beatmapId: 2407203, mods: "2" },
-        { beatmapId: 2940873, mods: "0" },
-        { beatmapId: 2017880, mods: "1" },
-        { beatmapId: 2153557, mods: "1" },
-        { beatmapId: 2095147, mods: "0" },
-        { beatmapId: 2956769, mods: "0" },
-        { beatmapId: 2417883, mods: "0" },
-        { beatmapId: 2236734, mods: "0" },
-        { beatmapId: 2236734, mods: "0" },
-        { beatmapId: 1594266, mods: "0" },
-        { beatmapId: 1363001, mods: "0" },
-        { beatmapId: 1950368, mods: "0" },
-        { beatmapId: 2992705, mods: "0" },
-        { beatmapId: 3006043, mods: "0" },
-        { beatmapId: 1945175, mods: "0" },
-        { beatmapId: 1741498, mods: "0" },
-        { beatmapId: 2659911, mods: "0" },
-        { beatmapId: 2596015, mods: "0" },
+        { beatmapId: 3015906, mods: "NM" },
+        { beatmapId: 1848250, mods: "NM" },
+        { beatmapId: 2994883, mods: "NM" },
+        { beatmapId: 2747949, mods: "NM" },
+        { beatmapId: 2943226, mods: "NM" },
+        { beatmapId: 2931958, mods: "NM" },
+        { beatmapId: 2566810, mods: "HD" },
+        { beatmapId: 2407203, mods: "HD" },
+        { beatmapId: 2940873, mods: "HD" },
+        { beatmapId: 2017880, mods: "HR" },
+        { beatmapId: 2153557, mods: "HR" },
+        { beatmapId: 2095147, mods: "HR" },
+        { beatmapId: 2956769, mods: "DT" },
+        { beatmapId: 2417883, mods: "DT" },
+        { beatmapId: 2236734, mods: "DT" },
+        { beatmapId: 2236734, mods: "DT" },
+        { beatmapId: 1594266, mods: "FM" },
+        { beatmapId: 1363001, mods: "FM" },
+        { beatmapId: 1950368, mods: "FM" },
+        { beatmapId: 2596015, mods: "TB" },
     ]; // For testing only
 
     let row = -1;
+    let preMod = 0;
+    let colIndex = 0;
     bms.map(async(beatmap, index) => {
-        if (index % 3 === 0) row++;
-        const bm = new Beatmap(beatmap.mods, beatmap.beatmapId, 100 * row + 50, 500 * (index % 3) + 105 * (index % 3 + 1), `map${index}`);
+        if (beatmap.mods !== preMod || colIndex % 3 === 0) {
+            preMod = beatmap.mods;
+            colIndex = 0;
+            row++;
+        }
+        const bm = new Beatmap(beatmap.mods, beatmap.beatmapId, 100 * row + 110, 500 * (colIndex % 3) + 105 * (colIndex++ % 3 + 1), `map${index}`);
+        if (beatmap.mods == "TB") {
+            bm.top = 810;
+            bm.left = 710;
+        }
         bm.generate();
         bm.clicker.onmouseover = function() {
             bm.clicker.style.transform = "translateY(-5px)";
