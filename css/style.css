@@ -59,7 +59,7 @@ html {
 #mapStat {
     position: absolute;
     left: 1500px;
-    bottom: 55px;
+    bottom: 35px;
     width: 400px;
     height: 30px;
     text-align: center;
@@ -85,7 +85,7 @@ html {
     position: absolute;
     font-family: Exo2;
     left: 930px;
-    bottom: 70px;
+    bottom: 50px;
     width: 970px;
     height: 90px;
     text-align: center;
@@ -136,7 +136,7 @@ html {
     bottom: 10px;
     left: 10px;
     width: 900px;
-    height: 150px;
+    height: 130px;
     border-radius: 10px;
     overflow-y: scroll;
     overflow-x: hidden;
