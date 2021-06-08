@@ -292,8 +292,8 @@ socket.onmessage = async(event) => {
         tempSR = data.menu.bm.stats.fullSR;
 
         mapName.innerHTML = tempMapArtist + ' - ' + tempMapTitle;
-        mapInfo.innerHTML = 'Difficulty: ' + tempMapDiff + '&emsp;&emsp;&emsp;&emsp;' + 'Mapper: ' + tempMapper;
-        stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'Star Rating: ' + tempSR + '*';
+        mapInfo.innerHTML = `${tempMapDiff}` + '&emsp;&emsp;&emsp;&emsp;' + 'Mapper: ' + tempMapper;
+        stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'SR: ' + tempSR + '*';
     }
 };
 
@@ -470,7 +470,7 @@ function setupBeatmaps() {
         const mapData = await getDataSet(beatmap.beatmapId);
         bm.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${mapData.beatmapset_id}/covers/cover.jpg')`;
         bm.metadata.innerHTML = mapData.artist + ' - ' + mapData.title;
-        bm.difficulty.innerHTML = "Difficulty: " + mapData.version + '&emsp;&emsp;Mapper: ' + mapData.creator;
+        bm.difficulty.innerHTML = `[${mapData.version}]` + '&emsp;&emsp;Mapper: ' + mapData.creator;
         bm.stats.innerHTML = "CS: " + mapData.diff_size + '&emsp;AR: ' + mapData.diff_approach + '&emsp;OD: ' + mapData.diff_overall + '&emsp;HP: ' + mapData.diff_drain + '&emsp;Star Rating: ' + parseFloat(mapData.difficultyrating).toFixed(2) + '*';
         beatmaps.add(bm);
     });
