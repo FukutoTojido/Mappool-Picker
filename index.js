@@ -3,6 +3,12 @@ window.addEventListener("contextmenu", e => e.preventDefault());
 // PASTE YOUR API HERE
 let api = "";
 
+window.onload = function() {
+    let apiInput = prompt("Please enter your API", '');
+    if (apiInput !== null)
+        api = apiInput;
+};
+
 // START
 let socket = new ReconnectingWebSocket("ws://127.0.0.1:24050/ws");
 let axios = window.axios;
@@ -48,22 +54,28 @@ let tempClass = 'unknown';
 
 let hasSetup = false;
 
+const mods = {
+    NM: 0,
+    HD: 1,
+    HR: 2,
+    DT: 3,
+    FM: 4,
+    TB: 5,
+};
+
 class Beatmap {
-    constructor(modid, mapid, top, left, layerName) {
-        this.modid = modid;
-        this.mapid = mapid;
-        this.top = top;
-        this.left = left;
+    constructor(mods, beatmapID, layerName) {
+        this.mods = mods;
+        this.beatmapID = beatmapID;
         this.layerName = layerName;
-        this.user = {};
     }
     generate() {
-        let main = document.getElementById("main");
+        let mappoolContainer = document.getElementById(`${this.mods}`);
 
         this.clicker = document.createElement("div");
         this.clicker.id = `${this.layerName}Clicker`;
 
-        main.appendChild(this.clicker);
+        mappoolContainer.appendChild(this.clicker);
         let clickerObj = document.getElementById(this.clicker.id);
 
         this.bg = document.createElement("div");
@@ -72,7 +84,7 @@ class Beatmap {
         this.metadata = document.createElement("div");
         this.difficulty = document.createElement("div");
         this.stats = document.createElement("div");
-        this.mods = document.createElement("div");
+        this.mod = document.createElement("div");
         this.pickedStatus = document.createElement("div");
 
         this.bg.id = this.layerName;
@@ -81,7 +93,7 @@ class Beatmap {
         this.metadata.id = `${this.layerName}META`;
         this.difficulty.id = `${this.layerName}DIFF`;
         this.stats.id = `${this.layerName}Stats`;
-        this.mods.id = `${this.layerName}Mods`;
+        this.mod.id = `${this.layerName}Mods`;
         this.pickedStatus.id = `${this.layerName}STATUS`;
 
         this.metadata.style.cssText = ` position: absolute; 
@@ -135,7 +147,8 @@ class Beatmap {
                                             text-align: center; 
                                             user-select: none; 
                                             transition: ease-in-out 300ms; 
-                                            opacity: 0%; border-radius: 25px; 
+                                            opacity: 0; 
+                                            border-radius: 25px; 
                                             text-shadow: 0 0 10px black`;
         this.overlay.style.cssText = `  position: absolute; 
                                         top: 0px; 
@@ -144,7 +157,7 @@ class Beatmap {
                                         height: 60px; 
                                         background-color: #000; 
                                         border-radius: 10px; 
-                                        opacity: 50%; 
+                                        opacity: 0.5; 
                                         transition: ease-in-out 200ms;`;
         this.bg.style.cssText = `   position: absolute; 
                                     top: 50px; left: 150px; 
@@ -167,22 +180,19 @@ class Beatmap {
                                     text-align: center; 
                                     user-select: none; 
                                     transition: ease-in-out 200ms;`;
-        this.mods.style.cssText = ` position: absolute; 
+        this.mod.style.cssText = ` position: absolute; 
                                     top: 10px; 
                                     right: -20px; 
                                     width: 40px; 
                                     height: 40px; 
                                     background-size: 100%; 
-                                    background-image: url("./static/${this.modid}.png"); 
+                                    background-image: url("./static/${this.mods}.png"); 
                                     -webkit-filter: drop-shadow(0px 2px 2px #000); 
                                     filter: drop-shadow(0px 2px 2px #000); 
                                     transition: ease-in-out 200ms;`;
-        this.clicker.style.cssText = `  position: absolute; 
-                                        top: ${this.top}px; 
-                                        left: ${this.left}px; 
-                                        width: 500px; 
-                                        height: 130px; 
-                                        transition: ease-in-out 200ms;`;
+        this.clicker.style.cssText = `  width: 500px; 
+                                        height: 80px; 
+                                        transition: ease-in-out 300ms;`;
 
         clickerObj.appendChild(this.map);
         clickerObj.appendChild(this.overlay);
@@ -191,17 +201,75 @@ class Beatmap {
         clickerObj.appendChild(this.pickedStatus);
         clickerObj.appendChild(this.bg);
         clickerObj.appendChild(this.stats);
-        clickerObj.appendChild(this.mods);
+        clickerObj.appendChild(this.mod);
+
+        this.clicker.style.transform = "translateY(0)";
     }
     grayedOut() {
-        this.overlay.style.cssText = `position: absolute; top: 0px; left: 0px; width: 500px; height: 100px; background-color: #000; border-radius: 10px; opacity: 100%`;
+        this.overlay.style.cssText = `  position: absolute; 
+                                        top: 0px; left: 0px; 
+                                        width: 500px; 
+                                        height: 100px; 
+                                        background-color: #000; 
+                                        border-radius: 10px; 
+                                        opacity: 1`;
     }
 }
 
-let clickStat = 0;
+let team1 = "Red",
+    team2 = "Blue";
 
 socket.onmessage = async(event) => {
     let data = JSON.parse(event.data);
+
+    if (data.tourney.manager.ipcState == 1) {
+        team1 = data.tourney.manager.teamName.left;
+        team2 = data.tourney.manager.teamName.right;
+        if (chatLen != data.tourney.manager.chat.length) {
+            // There's new chats that haven't been updated
+
+            if (chatLen == 0 || (chatLen > 0 && chatLen > data.tourney.manager.chat.length)) {
+                // Starts from bottom
+                chats.innerHTML = "";
+                chatLen = 0;
+            }
+
+            // Add the chats
+            for (var i = chatLen; i < data.tourney.manager.chat.length; i++) {
+                tempClass = data.tourney.manager.chat[i].team;
+
+                // Chat variables
+                let chatParent = document.createElement('div');
+                chatParent.setAttribute('class', 'chat');
+
+                let chatTime = document.createElement('div');
+                chatTime.setAttribute('class', 'chatTime');
+
+                let chatName = document.createElement('div');
+                chatName.setAttribute('class', 'chatName');
+
+                let chatText = document.createElement('div');
+                chatText.setAttribute('class', 'chatText');
+
+                chatTime.innerText = data.tourney.manager.chat[i].time;
+                chatName.innerText = data.tourney.manager.chat[i].name + ":\xa0";
+                chatText.innerText = data.tourney.manager.chat[i].messageBody;
+
+                chatName.classList.add(tempClass);
+
+                chatParent.append(chatTime);
+                chatParent.append(chatName);
+                chatParent.append(chatText);
+                chats.append(chatParent);
+            }
+
+            // Update the Length of chat
+            chatLen = data.tourney.manager.chat.length;
+
+            // Update the scroll so it's sticks at the bottom by default
+            chats.scrollTop = chats.scrollHeight;
+        }
+    }
 
     if (!hasSetup) setupBeatmaps();
 
@@ -227,79 +295,48 @@ socket.onmessage = async(event) => {
         mapInfo.innerHTML = 'Difficulty: ' + tempMapDiff + '&emsp;&emsp;&emsp;&emsp;' + 'Mapper: ' + tempMapper;
         stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'Star Rating: ' + tempSR + '*';
     }
-
-    /*if (chatLen != data.tourney.manager.chat.length) {
-        // There's new chats that haven't been updated
-
-        if (chatLen == 0 || (chatLen > 0 && chatLen > data.tourney.manager.chat.length)) {
-            // Starts from bottom
-            chats.innerHTML = "";
-            chatLen = 0;
-        }
-
-        // Add the chats
-        for (var i = chatLen; i < data.tourney.manager.chat.length; i++) {
-            tempClass = data.tourney.manager.chat[i].team;
-
-            // Chat variables
-            let chatParent = document.createElement('div');
-            chatParent.setAttribute('class', 'chat');
-
-            let chatTime = document.createElement('div');
-            chatTime.setAttribute('class', 'chatTime');
-
-            let chatName = document.createElement('div');
-            chatName.setAttribute('class', 'chatName');
-
-            let chatText = document.createElement('div');
-            chatText.setAttribute('class', 'chatText');
-
-            chatTime.innerText = data.tourney.manager.chat[i].time;
-            chatName.innerText = data.tourney.manager.chat[i].name + ":\xa0";
-            chatText.innerText = data.tourney.manager.chat[i].messageBody;
-
-            chatName.classList.add(tempClass);
-
-            chatParent.append(chatTime);
-            chatParent.append(chatName);
-            chatParent.append(chatText);
-            chats.append(chatParent);
-        }
-
-        // Update the Length of chat
-        chatLen = data.tourney.manager.chat.length;
-
-        // Update the scroll so it's sticks at the bottom by default
-        chats.scrollTop = chats.scrollHeight;
-    }*/
-
 };
 
 function setupBeatmaps() {
     hasSetup = true;
 
+    const modsCount = {
+        NM: 0,
+        HD: 0,
+        HR: 0,
+        DT: 0,
+        FM: 0,
+        TB: 0,
+    };
+
     const bms = [
-        { beatmapId: 3015906, mods: "NM" },
-        { beatmapId: 1848250, mods: "NM" },
-        { beatmapId: 2994883, mods: "NM" },
-        { beatmapId: 2747949, mods: "NM" },
-        { beatmapId: 2943226, mods: "NM" },
-        { beatmapId: 2931958, mods: "NM" },
-        { beatmapId: 2566810, mods: "HD" },
-        { beatmapId: 2407203, mods: "HD" },
-        { beatmapId: 2940873, mods: "HD" },
-        { beatmapId: 2017880, mods: "HR" },
-        { beatmapId: 2153557, mods: "HR" },
-        { beatmapId: 2095147, mods: "HR" },
-        { beatmapId: 2956769, mods: "DT" },
-        { beatmapId: 2417883, mods: "DT" },
-        { beatmapId: 2236734, mods: "DT" },
-        { beatmapId: 2236734, mods: "DT" },
-        { beatmapId: 1594266, mods: "FM" },
-        { beatmapId: 1363001, mods: "FM" },
-        { beatmapId: 1950368, mods: "FM" },
-        { beatmapId: 2596015, mods: "TB" },
+        { beatmapId: 2719302, mods: "NM" },
+        { beatmapId: 2719284, mods: "NM" },
+        { beatmapId: 2651784, mods: "NM" },
+        { beatmapId: 2719485, mods: "NM" },
+        { beatmapId: 2719305, mods: "NM" },
+        { beatmapId: 2719326, mods: "NM" },
+        { beatmapId: 2478754, mods: "HD" },
+        { beatmapId: 2719334, mods: "HD" },
+        { beatmapId: 2719328, mods: "HD" },
+        { beatmapId: 2719386, mods: "HR" },
+        { beatmapId: 2719372, mods: "HR" },
+        { beatmapId: 665149, mods: "HR" },
+        { beatmapId: 2719411, mods: "DT" },
+        { beatmapId: 2719893, mods: "DT" },
+        { beatmapId: 2719407, mods: "DT" },
+        { beatmapId: 2603690, mods: "DT" },
+        { beatmapId: 2719427, mods: "FM" },
+        { beatmapId: 2719439, mods: "FM" },
+        { beatmapId: 2719437, mods: "FM" },
+        { beatmapId: 2719462, mods: "TB" },
     ]; // For testing only
+
+    (function countMods() {
+        bms.map((beatmap) => {
+            modsCount[beatmap.mods]++;
+        });
+    })();
 
     let row = -1;
     let preMod = 0;
@@ -310,11 +347,9 @@ function setupBeatmaps() {
             colIndex = 0;
             row++;
         }
-        const bm = new Beatmap(beatmap.mods, beatmap.beatmapId, 100 * row + 110, 500 * (colIndex % 3) + 105 * (colIndex++ % 3 + 1), `map${index}`);
-        if (beatmap.mods == "TB") {
-            bm.top = 810;
-            bm.left = 710;
-        }
+        let oddRow = Math.round(modsCount[beatmap.mods] / 3) + 1;
+        let leftCol = modsCount[beatmap.mods] % 3;
+        const bm = new Beatmap(beatmap.mods, beatmap.beatmapId, `map${index}`);
         bm.generate();
         bm.clicker.onmouseover = function() {
             bm.clicker.style.transform = "translateY(-5px)";
@@ -333,27 +368,27 @@ function setupBeatmaps() {
                     bm.pickedStatus.style.height = "60px";
                     bm.pickedStatus.style.lineHeight = "60px";
                     bm.pickedStatus.style.fontSize = "25px";
-                    bm.overlay.style.opacity = "80%";
-                    bm.metadata.style.opacity = "30%";
-                    bm.difficulty.style.opacity = "30%";
-                    bm.stats.style.opacity = "0%";
-                    bm.bg.style.opacity = "0%";
+                    bm.overlay.style.opacity = "0.8";
+                    bm.metadata.style.opacity = "0.3";
+                    bm.difficulty.style.opacity = "0.3";
+                    bm.stats.style.opacity = "0";
+                    bm.bg.style.opacity = "0";
                     bm.pickedStatus.style.textShadow = "0 0 10px black";
                     setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "100%";
-                        bm.pickedStatus.innerHTML = "Banned by Red";
+                        bm.pickedStatus.style.opacity = "1";
+                        bm.pickedStatus.innerHTML = `Banned by ${team1}`;
                     }, 150);
                 } else if (event.ctrlKey) {
-                    bm.overlay.style.opacity = "40%";
-                    bm.metadata.style.opacity = "100%";
-                    bm.difficulty.style.opacity = "100%";
-                    bm.stats.style.opacity = "100%";
-                    bm.bg.style.opacity = "100%";
+                    bm.overlay.style.opacity = "0.5";
+                    bm.metadata.style.opacity = "1";
+                    bm.difficulty.style.opacity = "1";
+                    bm.stats.style.opacity = "1";
+                    bm.bg.style.opacity = "1";
                     bm.pickedStatus.style.left = "100px";
-                    bm.pickedStatus.style.opacity = "0%";
+                    bm.pickedStatus.style.opacity = "0";
                     bm.pickedStatus.style.backgroundColor = "rgba(0,0,0,0)";
                     setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "100%";
+                        bm.pickedStatus.style.opacity = "1";
                         bm.pickedStatus.innerHTML = "";
                     }, 150);
                 } else {
@@ -365,14 +400,14 @@ function setupBeatmaps() {
                     bm.pickedStatus.style.height = "20px";
                     bm.pickedStatus.style.lineHeight = "20px";
                     bm.pickedStatus.style.fontSize = "13px";
-                    bm.overlay.style.opacity = "40%";
-                    bm.metadata.style.opacity = "100%";
-                    bm.difficulty.style.opacity = "100%";
-                    bm.stats.style.opacity = "100%";
-                    bm.bg.style.opacity = "100%";
+                    bm.overlay.style.opacity = "0.5";
+                    bm.metadata.style.opacity = "1";
+                    bm.difficulty.style.opacity = "1";
+                    bm.stats.style.opacity = "1";
+                    bm.bg.style.opacity = "1";
                     bm.pickedStatus.style.textShadow = "0 0 0 rgba(0,0,0,0)";
                     setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "100%";
+                        bm.pickedStatus.style.opacity = "1";
                         bm.pickedStatus.innerHTML = "Picked";
                     }, 150);
                 }
@@ -387,27 +422,27 @@ function setupBeatmaps() {
                     bm.pickedStatus.style.height = "60px";
                     bm.pickedStatus.style.lineHeight = "60px";
                     bm.pickedStatus.style.fontSize = "25px";
-                    bm.overlay.style.opacity = "80%";
-                    bm.metadata.style.opacity = "30%";
-                    bm.difficulty.style.opacity = "30%";
-                    bm.stats.style.opacity = "0%";
-                    bm.bg.style.opacity = "0%";
+                    bm.overlay.style.opacity = "0.8";
+                    bm.metadata.style.opacity = "0.3";
+                    bm.difficulty.style.opacity = "0.3";
+                    bm.stats.style.opacity = "0";
+                    bm.bg.style.opacity = "0";
                     bm.pickedStatus.style.textShadow = "0 0 10px black";
                     setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "100%";
-                        bm.pickedStatus.innerHTML = "Banned by Blue";
+                        bm.pickedStatus.style.opacity = "1";
+                        bm.pickedStatus.innerHTML = `Banned by ${team2}`;
                     }, 150);
                 } else if (event.ctrlKey) {
-                    bm.overlay.style.opacity = "40%";
-                    bm.metadata.style.opacity = "100%";
-                    bm.difficulty.style.opacity = "100%";
-                    bm.stats.style.opacity = "100%";
-                    bm.bg.style.opacity = "100%";
+                    bm.overlay.style.opacity = "0.5";
+                    bm.metadata.style.opacity = "1";
+                    bm.difficulty.style.opacity = "1";
+                    bm.stats.style.opacity = "1";
+                    bm.bg.style.opacity = "1";
                     bm.pickedStatus.style.left = "100px";
-                    bm.pickedStatus.style.opacity = "0%";
+                    bm.pickedStatus.style.opacity = "0";
                     bm.pickedStatus.style.backgroundColor = "rgba(0,0,0,0)";
                     setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "100%";
+                        bm.pickedStatus.style.opacity = "1";
                         bm.pickedStatus.innerHTML = "";
                     }, 150);
                 } else {
@@ -419,14 +454,14 @@ function setupBeatmaps() {
                     bm.pickedStatus.style.height = "20px";
                     bm.pickedStatus.style.lineHeight = "20px";
                     bm.pickedStatus.style.fontSize = "13px";
-                    bm.overlay.style.opacity = "40%";
-                    bm.metadata.style.opacity = "100%";
-                    bm.difficulty.style.opacity = "100%";
-                    bm.stats.style.opacity = "100%";
-                    bm.bg.style.opacity = "100%";
+                    bm.overlay.style.opacity = "0.5";
+                    bm.metadata.style.opacity = "1";
+                    bm.difficulty.style.opacity = "1";
+                    bm.stats.style.opacity = "1";
+                    bm.bg.style.opacity = "1";
                     bm.pickedStatus.style.textShadow = "0 0 0 rgba(0,0,0,0)";
                     setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "100%";
+                        bm.pickedStatus.style.opacity = "1";
                         bm.pickedStatus.innerHTML = "Picked";
                     }, 150);
                 }
@@ -441,14 +476,14 @@ function setupBeatmaps() {
     });
 }
 
-async function getDataSet(mapid) {
+async function getDataSet(beatmapID) {
     try {
         const data = (
             await axios.get("/get_beatmaps", {
                 baseURL: "https://osu.ppy.sh/api",
                 params: {
-                    k: `${api}`,
-                    b: `${mapid}`,
+                    k: api,
+                    b: beatmapID,
                 },
             })
         )["data"];
