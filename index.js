@@ -1,13 +1,20 @@
 window.addEventListener("contextmenu", (e) => e.preventDefault());
 
-// PASTE YOUR API HERE
-let api = "";
-
-window.onload = function() {
-    let apiInput = prompt("Please enter your API", '');
-    if (apiInput !== null)
-        api = apiInput;
+const file = [];
+let api;
+async function getAPI() {
+    try {
+        const jsonData = await $.getJSON("api.json");
+        jsonData.map((num) => {
+            file.push(num);
+        });
+        api = file[0].api;
+    } catch (error) {
+        console.error("Could not read JSON file", error);
+    }
 };
+getAPI();
+
 
 // START
 let socket = new ReconnectingWebSocket("ws://127.0.0.1:24050/ws");
@@ -25,6 +32,11 @@ let stats = document.getElementById("stats");
 
 // Chats
 let chats = document.getElementById("chats");
+
+// Avatar
+let avaLeft = document.getElementById("avatarLeft");
+let avaRight = document.getElementById("avatarRight");
+let avaSet = 0;
 
 const beatmaps = new Set(); // Store beatmapID;
 
@@ -47,12 +59,18 @@ let tempMapID, tempImg, tempMapArtist, tempMapTitle, tempMapDiff, tempMapper;
 
 let tempSR, tempCS, tempAR, tempOD, tempHP;
 
+let scoreLeftTemp, scoreRightTemp;
+let teamNameLeftTemp, teamNameRightTemp;
+
 let gameState;
 
 let chatLen = 0;
 let tempClass = "unknown";
 
 let hasSetup = false;
+
+let scoreLeft = [];
+let scoreRight = [];
 
 const mods = {
     NM: 0,
@@ -96,108 +114,19 @@ class Beatmap {
         this.modIcon.id = `${this.layerName}ModIcon`;
         this.pickedStatus.id = `${this.layerName}STATUS`;
 
-        this.metadata.style.cssText = ` position: absolute; 
-                                        top: 2px; 
-                                        left: 20px; 
-                                        width: 460px; 
-                                        color: #fff; 
-                                        font-family: Exo2; 
-                                        font-size: 14px; 
-                                        line-height: 30px; 
-                                        text-shadow: 0 2px 3px black; 
-                                        user-select: none; 
-                                        transition: ease-in-out 200ms; 
-                                        white-space: nowrap; 
-                                        overflow: hidden; 
-                                        text-overflow: ellipsis;`;
-        this.difficulty.style.cssText = `   position: absolute; 
-                                            top: 20px; 
-                                            left: 20px; 
-                                            width: 460px; 
-                                            color: #fff; 
-                                            font-family: Exo2; 
-                                            font-size: 14px; 
-                                            line-height: 30px; 
-                                            text-shadow: 0 2px 3px black; 
-                                            user-select: none; 
-                                            transition: ease-in-out 200ms; 
-                                            white-space: nowrap; 
-                                            overflow: hidden; 
-                                            text-overflow: ellipsis;`;
-        this.map.style.cssText = `  position: absolute; 
-                                    top: 0px; 
-                                    left: 0px; 
-                                    width: 500px; 
-                                    height: 60px; 
-                                    background-color: #161616; 
-                                    background-size: 100%;
-                                    background-position: center center; 
-                                    color: #161616; 
-                                    border-radius: 10px; 
-                                    box-shadow: 0px 5px 20px -3px black; 
-                                    transition: ease-in-out 200ms;`;
-        this.pickedStatus.style.cssText = ` position: absolute; 
-                                            top: 50px; 
-                                            left: 100px; 
-                                            width: 100px; 
-                                            height: 20px; 
-                                            color: #fff; 
-                                            line-height: 30px; 
-                                            font-size: 15px; 
-                                            text-align: center; 
-                                            user-select: none; 
-                                            transition: ease-in-out 300ms; 
-                                            opacity: 0; 
-                                            border-radius: 25px; 
-                                            text-shadow: 0 0 10px black`;
-        this.overlay.style.cssText = `  position: absolute; 
-                                        top: 0px; 
-                                        left: 0px; 
-                                        width: 500px; 
-                                        height: 60px; 
-                                        background-color: #000; 
-                                        border-radius: 10px; 
-                                        opacity: 0.5; 
-                                        transition: ease-in-out 200ms;`;
-        this.bg.style.cssText = `   position: absolute; 
-                                    top: 50px; left: 150px; 
-                                    width: 350px; 
-                                    height: 20px; 
-                                    background-color: #161616; 
-                                    color: #fff; 
-                                    border-radius: 15px; 
-                                    box-shadow: 0px 5px 20px -3px black; 
-                                    transition: ease-in-out 200ms;`;
-        this.stats.style.cssText = `position: absolute; 
-                                    top: 50px; 
-                                    left: 170px; 
-                                    width: 310px; 
-                                    color: #fff; 
-                                    font-family: Exo2; 
-                                    font-size: 13px; 
-                                    line-height: 20px; 
-                                    text-shadow: 0 2px 3px black; 
-                                    text-align: center; 
-                                    user-select: none; 
-                                    transition: ease-in-out 200ms;`;
-        this.modIcon.style.cssText = ` position: absolute; 
-                                    top: 10px; 
-                                    right: -20px; 
-                                    width: 40px; 
-                                    height: 40px; 
-                                    background-size: 100%; 
-                                    background-image: url("./static/${this.mods}.png"); 
-                                    -webkit-filter: drop-shadow(0px 2px 2px #000); 
-                                    filter: drop-shadow(0px 2px 2px #000); 
-                                    transition: ease-in-out 200ms;`;
-        this.clicker.style.cssText = `  width: 500px; 
-                                        height: 80px; 
-                                        transition: ease-in-out 300ms;`;
-
+        this.metadata.setAttribute("class", "mapInfo");
+        this.difficulty.setAttribute("class", "mapInfo");
+        this.map.setAttribute("class", "map");
+        this.pickedStatus.setAttribute("class", "pickingStatus");
+        this.overlay.setAttribute("class", "overlay");
+        this.bg.setAttribute("class", "statBG");
+        this.modIcon.setAttribute("class", "modIcon");
+        this.modIcon.style.backgroundImage = `url("./static/${this.mods}.png")`;
+        this.clicker.setAttribute("class", "clicker");
         clickerObj.appendChild(this.map);
-        clickerObj.appendChild(this.overlay);
-        clickerObj.appendChild(this.metadata);
-        clickerObj.appendChild(this.difficulty);
+        document.getElementById(this.map.id).appendChild(this.overlay);
+        document.getElementById(this.map.id).appendChild(this.metadata);
+        document.getElementById(this.map.id).appendChild(this.difficulty);
         clickerObj.appendChild(this.pickedStatus);
         clickerObj.appendChild(this.bg);
         clickerObj.appendChild(this.stats);
@@ -206,15 +135,13 @@ class Beatmap {
         this.clicker.style.transform = "translateY(0)";
     }
     grayedOut() {
-        this.overlay.style.cssText = `  position: absolute; 
-                                        top: 0px; left: 0px; 
-                                        width: 500px; 
-                                        height: 100px; 
-                                        background-color: #000; 
-                                        border-radius: 10px; 
-                                        opacity: 1`;
+        this.overlay.style.opacity = '1';
     }
 }
+
+let bestOfTemp;
+let scoreVisibleTemp;
+let starsVisibleTemp;
 
 let team1 = "Red",
     team2 = "Blue";
@@ -222,9 +149,81 @@ let team1 = "Red",
 socket.onmessage = async(event) => {
     let data = JSON.parse(event.data);
 
-    if (data.tourney.manager.ipcState == 1) {
-        team1 = data.tourney.manager.teamName.left;
-        team2 = data.tourney.manager.teamName.right;
+    if (starsVisibleTemp !== data.tourney.manager.bools.starsVisible) {
+        starsVisibleTemp = data.tourney.manager.bools.starsVisible;
+        if (starsVisibleTemp) {
+            document.getElementById("scoreContainerLeft").style.opacity = "1";
+            document.getElementById("scoreContainerRight").style.opacity = "1";
+        } else {
+            document.getElementById("scoreContainerLeft").style.opacity = "0";
+            document.getElementById("scoreContainerRight").style.opacity = "0";
+        }
+    }
+
+    if (bestOfTemp !== data.tourney.manager.bestOF) {
+        bestOfTemp = data.tourney.manager.bestOF;
+        containerLeft = document.getElementById("scoreContainerLeft");
+        containerRight = document.getElementById("scoreContainerRight");
+        containerLeft.innerHTML = '';
+        containerRight.innerHTML = '';
+        for (var counter = 0; counter < Math.ceil(bestOfTemp / 2); counter++) {
+            scoreLeft[counter] = document.createElement("div");
+            scoreLeft[counter].id = `scoreLeft${counter}`;
+            scoreLeft[counter].setAttribute("class", "scoreLeft");
+            containerLeft.appendChild(scoreLeft[counter]);
+
+            scoreRight[counter] = document.createElement("div");
+            scoreRight[counter].id = `scoreRight${counter}`;
+            scoreRight[counter].setAttribute("class", "scoreRight");
+            containerRight.appendChild(scoreRight[counter]);
+        }
+    }
+
+    if (scoreLeftTemp !== data.tourney.manager.stars.left) {
+        scoreLeftTemp = data.tourney.manager.stars.left;
+        for (var i = 0; i < Math.ceil(bestOfTemp / 2); i++) {
+            if (i < scoreLeftTemp) {
+                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.backgroundColor = "#161616";
+                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.borderColor = "#fff";
+            } else if (i >= scoreLeftTemp) {
+                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.backgroundColor = "white";
+                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.borderColor = "#999";
+            }
+        }
+    }
+
+    if (scoreRightTemp !== data.tourney.manager.stars.right) {
+        scoreRightTemp = data.tourney.manager.stars.right;
+        for (var i = 0; i < Math.ceil(bestOfTemp / 2); i++) {
+            if (i < scoreRightTemp) {
+                scoreRight[i].style.backgroundColor = "#161616";
+                scoreRight[i].style.borderColor = "#fff";
+            } else if (i >= scoreRightTemp) {
+                scoreRight[i].style.backgroundColor = "white";
+                scoreRight[i].style.borderColor = "#999";
+            }
+        }
+    }
+
+    if (teamNameLeftTemp !== data.tourney.manager.teamName.left) {
+        teamNameLeftTemp = data.tourney.manager.teamName.left.toUpperCase();
+        teamLeftName.innerHTML = teamNameLeftTemp;
+    }
+    if (teamNameRightTemp !== data.tourney.manager.teamName.right) {
+        teamNameRightTemp = data.tourney.manager.teamName.right.toUpperCase();
+        teamRightName.innerHTML = teamNameRightTemp;
+    }
+
+    if (!avaSet) {
+        avaSet = 1;
+        setAvatar(avaLeft, teamNameLeftTemp);
+        setAvatar(avaRight, teamNameRightTemp);
+    }
+
+    team1 = data.tourney.manager.teamName.left;
+    team2 = data.tourney.manager.teamName.right;
+
+    if (!scoreVisibleTemp) {
         if (chatLen != data.tourney.manager.chat.length) {
             // There's new chats that haven't been updated
 
@@ -293,7 +292,7 @@ socket.onmessage = async(event) => {
 
         mapName.innerHTML = tempMapArtist + ' - ' + tempMapTitle;
         mapInfo.innerHTML = `${tempMapDiff}` + '&emsp;&emsp;&emsp;&emsp;' + 'Mapper: ' + tempMapper;
-        stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'SR: ' + tempSR + '*';
+        stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'Star Rating: ' + tempSR + '*';
     }
 };
 
@@ -458,7 +457,7 @@ async function setupBeatmaps() {
         bm.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${mapData.beatmapset_id}/covers/cover.jpg')`;
         bm.metadata.innerHTML = mapData.artist + ' - ' + mapData.title;
         bm.difficulty.innerHTML = `[${mapData.version}]` + '&emsp;&emsp;Mapper: ' + mapData.creator;
-        bm.stats.innerHTML = "CS: " + mapData.diff_size + '&emsp;AR: ' + mapData.diff_approach + '&emsp;OD: ' + mapData.diff_overall + '&emsp;HP: ' + mapData.diff_drain + '&emsp;Star Rating: ' + parseFloat(mapData.difficultyrating).toFixed(2) + '*';
+        bm.bg.innerHTML = "CS: " + mapData.diff_size + '&emsp;AR: ' + mapData.diff_approach + '&emsp;OD: ' + mapData.diff_overall + '&emsp;HP: ' + mapData.diff_drain + '&emsp;SR: ' + parseFloat(mapData.difficultyrating).toFixed(2) + '*';
         beatmaps.add(bm);
     });
 }
@@ -471,6 +470,28 @@ async function getDataSet(beatmapID) {
                 params: {
                     k: api,
                     b: beatmapID,
+                },
+            })
+        )["data"];
+        return data.length !== 0 ? data[0] : null;
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+async function setAvatar(element, username) {
+    const data = await getUserDataSet(username);
+    element.style.backgroundImage = `url("http://s.ppy.sh/a/${data.user_id}")`;
+}
+
+async function getUserDataSet(name) {
+    try {
+        const data = (
+            await axios.get("/get_user", {
+                baseURL: "https://osu.ppy.sh/api",
+                params: {
+                    k: api,
+                    u: name,
                 },
             })
         )["data"];

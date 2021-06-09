@@ -23,6 +23,16 @@
     src: url("../fonts/Exo2-MediumItalic.otf");
 }
 
+@font-face {
+    font-family: "Sabang";
+    src: url("../fonts/Sabang\ Island.otf");
+}
+
+@font-face {
+    font-family: "MADE";
+    src: url("../fonts/MADE\ Evolve\ Sans\ Bold.otf");
+}
+
 body,
 html {
     padding: 0;
@@ -39,7 +49,7 @@ html {
     width: 1920px;
     height: 1080px;
     position: relative;
-    background-image: url('../static/Background.jpg');
+    background-image: url('../static/Background.png');
     /*text-shadow: 0px 0px 8px black;*/
 }
 
@@ -57,16 +67,119 @@ html {
     margin-right: -5px !important;
 }
 
+#scoreNowLeft,
+#scoreNowRight {
+    font-size: 80px !important;
+    width: 50px !important;
+    text-align: center;
+}
+
+#teamLeftName,
+#teamRightName {
+    position: absolute;
+    font-family: Sabang;
+    padding-top: 5px;
+    height: 70px;
+    line-height: 70px;
+    font-size: 70px;
+    border-radius: 20px;
+    color: #161616;
+    transition: ease-in-out 500ms;
+}
+
+#teamLeftName {
+    text-align: right;
+    right: 1230px;
+}
+
+#teamRightName {
+    text-align: left;
+    left: 1230px;
+}
+
+#teamName {
+    position: absolute;
+    width: 100%;
+    height: 120px;
+    background-color: white;
+    background-image: url('../static/topBar.png');
+    top: 0px;
+    box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.20);
+    text-shadow: 0 5px 5px rgba(0, 0, 0, 0.5);
+}
+
+#scoreContainerLeft,
+#scoreContainerRight {
+    position: absolute;
+    display: flex;
+    width: 600px;
+    height: 20px;
+    bottom: 20px;
+    transition: ease-in-out 100ms
+}
+
+#scoreContainerLeft {
+    justify-content: flex-end;
+    right: 1230px;
+}
+
+#scoreContainerRight {
+    justify-content: flex-start;
+    left: 1230px;
+}
+
+.scoreLeft,
+.scoreRight {
+    width: 60px;
+    height: 20px;
+    background-color: white;
+    border-style: solid;
+    border-color: #999;
+    border-width: 3px;
+    transition: ease-in-out 100ms
+}
+
+.scoreLeft {
+    flex-wrap: wrap-reverse;
+    margin-left: 10px;
+}
+
+.scoreRight {
+    margin-right: 10px;
+}
+
+.avatar {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    background-color: #161616;
+    margin-top: auto;
+    margin-bottom: auto;
+    top: 0;
+    bottom: 0;
+    background-size: 100%;
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.20);
+}
+
+#avatarLeft {
+    left: 10px;
+}
+
+#avatarRight {
+    right: 10px;
+}
+
 #mappoolContainer {
     position: absolute;
-    top: 120px;
+    top: 150px;
     display: flex;
     flex-wrap: wrap;
     width: 100%;
     gap: 20px;
 }
 
-.modIcon {
+.mapContainer {
     display: flex;
     justify-content: space-evenly;
     flex-wrap: wrap;
@@ -74,46 +187,152 @@ html {
     width: 100%;
 }
 
-#mapStat {
-    position: absolute;
-    left: 1500px;
-    bottom: 35px;
-    width: 400px;
-    height: 30px;
-    text-align: center;
-    align-content: center;
+.map {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 5px;
+    width: 500px;
+    height: 60px;
     background-color: #161616;
-    background-size: cover;
+    background-size: 100%;
+    background-position: center center;
+    color: #161616;
+    border-radius: 10px;
     box-shadow: 0px 5px 20px -3px black;
-    z-index: 0;
-    border-radius: 20px;
-    transition: ease-in-out 500ms;
+    transition: ease-in-out 200ms;
+}
+
+.mapInfo {
+    width: 100%;
+    margin-left: 20px;
+    margin-right: 20px;
+    transform: translateY(8px);
+    color: #fff;
+    font-family: Exo2;
+    font-size: 14px;
+    text-shadow: 0 2px 3px black;
+    user-select: none;
+    transition: ease-in-out 200ms;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pickingStatus {
+    position: absolute;
+    top: 50px;
+    left: 100px;
+    width: 100px;
+    height: 20px;
+    color: #fff;
+    line-height: 30px;
+    font-size: 15px;
+    text-align: center;
+    user-select: none;
+    transition: ease-in-out 300ms;
+    opacity: 0;
+    border-radius: 25px;
+    text-shadow: 0 0 10px black
+}
+
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 60px;
+    background-color: #000;
+    border-radius: 10px;
+    opacity: 0.5;
+    transition: ease-in-out 200ms;
+}
+
+.statBG {
+    position: absolute;
+    top: 50px;
+    left: 150px;
+    width: 350px;
+    height: 20px;
+    background-color: #161616;
+    color: #fff;
+    border-radius: 15px;
+    box-shadow: 0px 5px 20px -3px black;
+    margin-left: 20px;
+    margin-right: 20px;
+    line-height: 20px;
+    font-family: Exo2;
+    font-size: 13px;
+    line-height: 20px;
+    text-shadow: 0 2px 3px black;
+    text-align: center;
+    user-select: none;
+    transition: ease-in-out 200ms
+}
+
+.modIcon {
+    position: absolute;
+    top: 10px;
+    right: -22px;
+    width: 44px;
+    height: 31px;
+    background-size: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    -webkit-filter: drop-shadow(0px 2px 2px #000);
+    filter: drop-shadow(0px 2px 2px #000);
+    transition: ease-in-out 200ms;
+}
+
+.clicker {
+    width: 500px;
+    height: 80px;
+    transition: ease-in-out 300ms;
+}
+
+#bottom {
+    position: absolute;
+    width: 100%;
+    height: 120px;
+    bottom: 0px;
+    box-shadow: 0 -10px 10px 0 rgba(0, 0, 0, 0.5);
 }
 
 #stats {
     position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -30px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: 30px;
+    text-align: center;
+    align-content: center;
+    background-color: #161616;
+    user-select: none;
     font-family: Exo2;
     font-size: 15px;
     line-height: 30px;
-    width: 100%;
     color: #fff;
+    transition: ease-in-out 500ms;
 }
 
 #nowPlayingContainer {
     position: absolute;
     font-family: Exo2;
-    left: 930px;
-    bottom: 50px;
-    width: 970px;
+    left: 50%;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    bottom: 30px;
+    width: 50%;
     height: 90px;
     text-align: center;
     align-content: center;
     background-color: black;
     background-size: cover;
     background-position: center center;
-    box-shadow: 0px 5px 20px -3px black;
+    /*box-shadow: 0px 5px 20px -3px black;*/
     z-index: 0;
-    border-radius: 10px;
     transition: ease-in-out 500ms;
 }
 
@@ -121,7 +340,6 @@ html {
     position: absolute;
     height: 100%;
     width: 100%;
-    border-radius: 10px;
     background-color: rgba(0, 0, 0, 0.70);
 }
 
@@ -149,20 +367,19 @@ html {
 }
 
 #chats {
-    background: #101010;
+    background: #161616;
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    width: 900px;
-    height: 130px;
-    border-radius: 10px;
+    left: 0;
+    bottom: 0;
+    width: 50%;
+    height: 110px;
     overflow-y: scroll;
     overflow-x: hidden;
+    padding-top: 5px;
+    padding-bottom: 5px;
     font-size: 18px;
     font-family: Gothic-b, monospace;
-    box-shadow: 0px 5px 20px -3px black;
     transition: ease-in-out 500ms;
-    padding: 10px 0px 0px 10px;
 }
 
 .chat {
@@ -173,7 +390,8 @@ html {
 .chatTime {
     width: 5%;
     color: silver;
-    padding-right: 10px;
+    margin-right: 20px;
+    margin-left: 20px;
 }
 
 .wholeChat {
