@@ -1,5 +1,6 @@
 # Mappool Picker for osu! based on osu!API V1 and gosumemory back-end.
 ## Thank you Mune for helping me in this project.
+- Download the master branch
 - Input your API in api.json
 - Input your beatmap id (not beatmapset) in beatmap.json
 - Run osu!tourney
