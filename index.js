@@ -239,10 +239,15 @@ socket.onmessage = async(event) => {
         teamRightName.innerHTML = teamNameRightTemp;
     }
 
-    if (!avaSet && teamNameLeftTemp !== "" && teamNameRightTemp !== "") {
+    if (!avaSet) {
         avaSet = 1;
-        setAvatar(avaLeft, teamNameLeftTemp);
-        setAvatar(avaRight, teamNameRightTemp);
+        if (teamNameLeftTemp !== "" || teamNameRightTemp !== "") {
+            setAvatar(avaLeft, teamNameLeftTemp);
+            setAvatar(avaRight, teamNameRightTemp);
+        } else if (teamNameLeftTemp == "" || teamNameRight == "") {
+            avaLeft.style.backgroundImage = "url('./static/left.png')";
+            avaRight.style.backgroundImage = "url('./static/right.png')";
+        }
     }
 
     if (data.tourney.manager.teamName.left !== "" && data.tourney.manager.teamName.right !== "") {
