@@ -149,6 +149,31 @@ let team1 = "Red",
 socket.onmessage = async(event) => {
     let data = JSON.parse(event.data);
 
+    if (!hasSetup) setupBeatmaps();
+
+    if (tempImg !== data.menu.bm.path.full) {
+        tempImg = data.menu.bm.path.full;
+        data.menu.bm.path.full = data.menu.bm.path.full.replace(/#/g, '%23').replace(/%/g, '%25').replace(/\\/g, '/');
+        nowPlayingContainer.style.backgroundImage = `url('http://127.0.0.1:24050/Songs/${data.menu.bm.path.full}?a=${Math.random(10000)}')`;
+    }
+    if (tempMapID !== data.menu.bm.id || tempSR !== data.menu.bm.stats.fullSR) {
+        tempMapID = data.menu.bm.id;
+        tempMapArtist = data.menu.bm.metadata.artist;
+        tempMapTitle = data.menu.bm.metadata.title;
+        tempMapDiff = '[' + data.menu.bm.metadata.difficulty + ']';
+        tempMapper = data.menu.bm.metadata.mapper;
+
+        tempCS = data.menu.bm.stats.CS;
+        tempAR = data.menu.bm.stats.AR;
+        tempOD = data.menu.bm.stats.OD;
+        tempHP = data.menu.bm.stats.HP;
+        tempSR = data.menu.bm.stats.fullSR;
+
+        mapName.innerHTML = tempMapArtist + ' - ' + tempMapTitle;
+        mapInfo.innerHTML = `${tempMapDiff}` + '&emsp;&emsp;&emsp;&emsp;' + 'Mapper: ' + tempMapper;
+        stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'Star Rating: ' + tempSR + '*';
+    }
+
     if (starsVisibleTemp !== data.tourney.manager.bools.starsVisible) {
         starsVisibleTemp = data.tourney.manager.bools.starsVisible;
         if (starsVisibleTemp) {
@@ -214,14 +239,16 @@ socket.onmessage = async(event) => {
         teamRightName.innerHTML = teamNameRightTemp;
     }
 
-    if (!avaSet) {
+    if (!avaSet && teamNameLeftTemp !== "" && teamNameRightTemp !== "") {
         avaSet = 1;
         setAvatar(avaLeft, teamNameLeftTemp);
         setAvatar(avaRight, teamNameRightTemp);
     }
 
-    team1 = data.tourney.manager.teamName.left;
-    team2 = data.tourney.manager.teamName.right;
+    if (data.tourney.manager.teamName.left !== "" && data.tourney.manager.teamName.right !== "") {
+        team1 = data.tourney.manager.teamName.left;
+        team2 = data.tourney.manager.teamName.right;
+    }
 
     if (!scoreVisibleTemp) {
         if (chatLen != data.tourney.manager.chat.length) {
@@ -268,31 +295,6 @@ socket.onmessage = async(event) => {
             // Update the scroll so it's sticks at the bottom by default
             chats.scrollTop = chats.scrollHeight;
         }
-    }
-
-    if (!hasSetup) setupBeatmaps();
-
-    if (tempImg !== data.menu.bm.path.full) {
-        tempImg = data.menu.bm.path.full;
-        data.menu.bm.path.full = data.menu.bm.path.full.replace(/#/g, '%23').replace(/%/g, '%25').replace(/\\/g, '/');
-        nowPlayingContainer.style.backgroundImage = `url('http://127.0.0.1:24050/Songs/${data.menu.bm.path.full}?a=${Math.random(10000)}')`;
-    }
-    if (tempMapID !== data.menu.bm.id || tempSR !== data.menu.bm.stats.fullSR) {
-        tempMapID = data.menu.bm.id;
-        tempMapArtist = data.menu.bm.metadata.artist;
-        tempMapTitle = data.menu.bm.metadata.title;
-        tempMapDiff = '[' + data.menu.bm.metadata.difficulty + ']';
-        tempMapper = data.menu.bm.metadata.mapper;
-
-        tempCS = data.menu.bm.stats.CS;
-        tempAR = data.menu.bm.stats.AR;
-        tempOD = data.menu.bm.stats.OD;
-        tempHP = data.menu.bm.stats.HP;
-        tempSR = data.menu.bm.stats.fullSR;
-
-        mapName.innerHTML = tempMapArtist + ' - ' + tempMapTitle;
-        mapInfo.innerHTML = `${tempMapDiff}` + '&emsp;&emsp;&emsp;&emsp;' + 'Mapper: ' + tempMapper;
-        stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'Star Rating: ' + tempSR + '*';
     }
 };
 
