@@ -27,8 +27,8 @@ body,
 html {
     padding: 0;
     margin: 0;
-    overflow-y: visible;
-    overflow-x: hidden;
+    overflow-y: hidden;
+    user-select: none;
 }
 
 #main {
@@ -66,12 +66,7 @@ html {
     gap: 20px;
 }
 
-#NM,
-#HD,
-#HR,
-#DT,
-#FM,
-#TB {
+.modIcon {
     display: flex;
     justify-content: space-evenly;
     flex-wrap: wrap;
@@ -97,7 +92,6 @@ html {
 
 #stats {
     position: absolute;
-    user-select: none;
     font-family: Exo2;
     font-size: 15px;
     line-height: 30px;
@@ -134,7 +128,6 @@ html {
 #mapName,
 #mapInfo {
     position: absolute;
-    user-select: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

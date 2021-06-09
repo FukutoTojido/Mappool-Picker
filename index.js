@@ -1,4 +1,4 @@
-window.addEventListener("contextmenu", e => e.preventDefault());
+window.addEventListener("contextmenu", (e) => e.preventDefault());
 
 // PASTE YOUR API HERE
 let api = "";
@@ -32,12 +32,12 @@ socket.onopen = () => {
     console.log("Successfully Connected");
 };
 
-socket.onclose = event => {
+socket.onclose = (event) => {
     console.log("Socket Closed Connection: ", event);
     socket.send("Client Closed!");
 };
 
-socket.onerror = error => {
+socket.onerror = (error) => {
     console.log("Socket Error: ", error);
 };
 
@@ -50,7 +50,7 @@ let tempSR, tempCS, tempAR, tempOD, tempHP;
 let gameState;
 
 let chatLen = 0;
-let tempClass = 'unknown';
+let tempClass = "unknown";
 
 let hasSetup = false;
 
@@ -84,7 +84,7 @@ class Beatmap {
         this.metadata = document.createElement("div");
         this.difficulty = document.createElement("div");
         this.stats = document.createElement("div");
-        this.mod = document.createElement("div");
+        this.modIcon = document.createElement("div");
         this.pickedStatus = document.createElement("div");
 
         this.bg.id = this.layerName;
@@ -93,7 +93,7 @@ class Beatmap {
         this.metadata.id = `${this.layerName}META`;
         this.difficulty.id = `${this.layerName}DIFF`;
         this.stats.id = `${this.layerName}Stats`;
-        this.mod.id = `${this.layerName}Mods`;
+        this.modIcon.id = `${this.layerName}ModIcon`;
         this.pickedStatus.id = `${this.layerName}STATUS`;
 
         this.metadata.style.cssText = ` position: absolute; 
@@ -180,7 +180,7 @@ class Beatmap {
                                     text-align: center; 
                                     user-select: none; 
                                     transition: ease-in-out 200ms;`;
-        this.mod.style.cssText = ` position: absolute; 
+        this.modIcon.style.cssText = ` position: absolute; 
                                     top: 10px; 
                                     right: -20px; 
                                     width: 40px; 
@@ -201,7 +201,7 @@ class Beatmap {
         clickerObj.appendChild(this.pickedStatus);
         clickerObj.appendChild(this.bg);
         clickerObj.appendChild(this.stats);
-        clickerObj.appendChild(this.mod);
+        clickerObj.appendChild(this.modIcon);
 
         this.clicker.style.transform = "translateY(0)";
     }
@@ -297,7 +297,7 @@ socket.onmessage = async(event) => {
     }
 };
 
-function setupBeatmaps() {
+async function setupBeatmaps() {
     hasSetup = true;
 
     const modsCount = {
@@ -309,28 +309,15 @@ function setupBeatmaps() {
         TB: 0,
     };
 
-    const bms = [
-        { beatmapId: 2719302, mods: "NM" },
-        { beatmapId: 2719284, mods: "NM" },
-        { beatmapId: 2651784, mods: "NM" },
-        { beatmapId: 2719485, mods: "NM" },
-        { beatmapId: 2719305, mods: "NM" },
-        { beatmapId: 2719326, mods: "NM" },
-        { beatmapId: 2478754, mods: "HD" },
-        { beatmapId: 2719334, mods: "HD" },
-        { beatmapId: 2719328, mods: "HD" },
-        { beatmapId: 2719386, mods: "HR" },
-        { beatmapId: 2719372, mods: "HR" },
-        { beatmapId: 665149, mods: "HR" },
-        { beatmapId: 2719411, mods: "DT" },
-        { beatmapId: 2719893, mods: "DT" },
-        { beatmapId: 2719407, mods: "DT" },
-        { beatmapId: 2603690, mods: "DT" },
-        { beatmapId: 2719427, mods: "FM" },
-        { beatmapId: 2719439, mods: "FM" },
-        { beatmapId: 2719437, mods: "FM" },
-        { beatmapId: 2719462, mods: "TB" },
-    ]; // For testing only
+    const bms = [];
+    try {
+        const jsonData = await $.getJSON("beatmaps.json");
+        jsonData.map((beatmap) => {
+            bms.push(beatmap);
+        });
+    } catch (error) {
+        console.error("Could not read JSON file", error);
+    }
 
     (function countMods() {
         bms.map((beatmap) => {
@@ -353,10 +340,10 @@ function setupBeatmaps() {
         bm.generate();
         bm.clicker.onmouseover = function() {
             bm.clicker.style.transform = "translateY(-5px)";
-        }
+        };
         bm.clicker.onmouseleave = function() {
             bm.clicker.style.transform = "translateY(0px)";
-        }
+        };
         bm.clicker.addEventListener("mousedown", function() {
             bm.clicker.addEventListener("click", function(event) {
                 if (event.shiftKey) {
