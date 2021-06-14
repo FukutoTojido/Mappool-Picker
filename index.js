@@ -15,6 +15,10 @@ async function getAPI() {
 };
 getAPI();
 
+BackgroundCheck.init({
+    targets: '.teamName',
+    images: '#teamName'
+});
 
 // START
 let socket = new ReconnectingWebSocket("ws://127.0.0.1:24050/ws");
@@ -149,6 +153,24 @@ let team1 = "Red",
 socket.onmessage = async(event) => {
     let data = JSON.parse(event.data);
 
+    if (team1 !== data.tourney.manager.teamName.left && team2 !== data.tourney.manager.teamName.right) {
+        if (data.tourney.manager.teamName.left !== "" && data.tourney.manager.teamName.right !== "") {
+            team1 = data.tourney.manager.teamName.left;
+            team2 = data.tourney.manager.teamName.right;
+        }
+        avaSet = 0;
+    }
+
+    if (!avaSet) {
+        avaSet = 1;
+        if (setAvatar(avaLeft, team1)) {
+            avaLeft.style.backgroundImage = "url('./static/left.png')";
+        }
+        if (setAvatar(avaRight, team2)) {
+            avaRight.style.backgroundImage = "url('./static/right.png')";
+        }
+    }
+
     if (!hasSetup) setupBeatmaps();
 
     if (tempImg !== data.menu.bm.path.full) {
@@ -185,6 +207,15 @@ socket.onmessage = async(event) => {
         }
     }
 
+    if (teamNameLeftTemp !== data.tourney.manager.teamName.left) {
+        teamNameLeftTemp = data.tourney.manager.teamName.left.toUpperCase();
+        teamLeftName.innerHTML = teamNameLeftTemp;
+    }
+    if (teamNameRightTemp !== data.tourney.manager.teamName.right) {
+        teamNameRightTemp = data.tourney.manager.teamName.right.toUpperCase();
+        teamRightName.innerHTML = teamNameRightTemp;
+    }
+
     if (bestOfTemp !== data.tourney.manager.bestOF) {
         bestOfTemp = data.tourney.manager.bestOF;
         containerLeft = document.getElementById("scoreContainerLeft");
@@ -208,11 +239,11 @@ socket.onmessage = async(event) => {
         scoreLeftTemp = data.tourney.manager.stars.left;
         for (var i = 0; i < Math.ceil(bestOfTemp / 2); i++) {
             if (i < scoreLeftTemp) {
-                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.backgroundColor = "#161616";
-                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.borderColor = "#fff";
+                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.backgroundColor = "#de3950";
+                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.borderColor = "#de3950";
             } else if (i >= scoreLeftTemp) {
                 scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.backgroundColor = "white";
-                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.borderColor = "#999";
+                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.borderColor = "#de3950";
             }
         }
     }
@@ -221,38 +252,13 @@ socket.onmessage = async(event) => {
         scoreRightTemp = data.tourney.manager.stars.right;
         for (var i = 0; i < Math.ceil(bestOfTemp / 2); i++) {
             if (i < scoreRightTemp) {
-                scoreRight[i].style.backgroundColor = "#161616";
-                scoreRight[i].style.borderColor = "#fff";
+                scoreRight[i].style.backgroundColor = "#2982e3";
+                scoreRight[i].style.borderColor = "#2982e3";
             } else if (i >= scoreRightTemp) {
                 scoreRight[i].style.backgroundColor = "white";
-                scoreRight[i].style.borderColor = "#999";
+                scoreRight[i].style.borderColor = "#2982e3";
             }
         }
-    }
-
-    if (teamNameLeftTemp !== data.tourney.manager.teamName.left) {
-        teamNameLeftTemp = data.tourney.manager.teamName.left.toUpperCase();
-        teamLeftName.innerHTML = teamNameLeftTemp;
-    }
-    if (teamNameRightTemp !== data.tourney.manager.teamName.right) {
-        teamNameRightTemp = data.tourney.manager.teamName.right.toUpperCase();
-        teamRightName.innerHTML = teamNameRightTemp;
-    }
-
-    if (!avaSet) {
-        avaSet = 1;
-        if (teamNameLeftTemp !== "" || teamNameRightTemp !== "") {
-            setAvatar(avaLeft, teamNameLeftTemp);
-            setAvatar(avaRight, teamNameRightTemp);
-        } else if (teamNameLeftTemp == "" || teamNameRight == "") {
-            avaLeft.style.backgroundImage = "url('./static/left.png')";
-            avaRight.style.backgroundImage = "url('./static/right.png')";
-        }
-    }
-
-    if (data.tourney.manager.teamName.left !== "" && data.tourney.manager.teamName.right !== "") {
-        team1 = data.tourney.manager.teamName.left;
-        team2 = data.tourney.manager.teamName.right;
     }
 
     if (!scoreVisibleTemp) {
@@ -488,7 +494,12 @@ async function getDataSet(beatmapID) {
 
 async function setAvatar(element, username) {
     const data = await getUserDataSet(username);
-    element.style.backgroundImage = `url("http://s.ppy.sh/a/${data.user_id}")`;
+    if (data !== null) {
+        element.style.backgroundImage = `url("http://s.ppy.sh/a/${data.user_id}")`;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 async function getUserDataSet(name) {

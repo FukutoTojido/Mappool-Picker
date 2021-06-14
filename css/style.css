@@ -74,16 +74,15 @@ html {
     text-align: center;
 }
 
-#teamLeftName,
-#teamRightName {
+.teamName {
     position: absolute;
     font-family: Sabang;
-    padding-top: 5px;
+    top: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
     height: 70px;
     line-height: 70px;
     font-size: 70px;
-    border-radius: 20px;
-    color: #161616;
     transition: ease-in-out 500ms;
 }
 
@@ -101,36 +100,47 @@ html {
     position: absolute;
     width: 100%;
     height: 120px;
-    background-color: white;
+    background-color: #161616;
     background-image: url('../static/topBar.png');
+    background-size: 100%;
     top: 0px;
     box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.20);
-    text-shadow: 0 5px 5px rgba(0, 0, 0, 0.5);
+}
+
+.background--light {
+    color: #161616;
+}
+
+.background--dark {
+    color: #fff;
 }
 
 #scoreContainerLeft,
 #scoreContainerRight {
     position: absolute;
     display: flex;
-    width: 600px;
-    height: 20px;
-    bottom: 20px;
+    height: 26px;
+    bottom: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     transition: ease-in-out 100ms
 }
 
 #scoreContainerLeft {
     justify-content: flex-end;
+    padding-right: 10px;
     right: 1230px;
 }
 
 #scoreContainerRight {
     justify-content: flex-start;
+    padding-left: 10px;
     left: 1230px;
 }
 
 .scoreLeft,
 .scoreRight {
-    width: 60px;
+    width: 50px;
     height: 20px;
     background-color: white;
     border-style: solid;
@@ -153,7 +163,6 @@ html {
     width: 100px;
     height: 100px;
     border-radius: 10px;
-    background-color: #161616;
     margin-top: auto;
     margin-bottom: auto;
     top: 0;
@@ -176,15 +185,14 @@ html {
     display: flex;
     flex-wrap: wrap;
     width: 100%;
-    gap: 20px;
 }
 
 .mapContainer {
     display: flex;
     justify-content: space-evenly;
     flex-wrap: wrap;
-    gap: 20px;
     width: 100%;
+    margin-bottom: 20px;
 }
 
 .map {
