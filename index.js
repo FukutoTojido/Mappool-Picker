@@ -12,13 +12,13 @@ async function getAPI() {
     } catch (error) {
         console.error("Could not read JSON file", error);
     }
-};
+}
 getAPI();
 
-BackgroundCheck.init({
+/*BackgroundCheck.init({
     targets: '.teamName',
     images: '#teamName'
-});
+});*/
 
 // START
 let socket = new ReconnectingWebSocket("ws://127.0.0.1:24050/ws");
@@ -41,6 +41,11 @@ let chats = document.getElementById("chats");
 let avaLeft = document.getElementById("avatarLeft");
 let avaRight = document.getElementById("avatarRight");
 let avaSet = 0;
+
+// First Pick
+let pickButtonR = document.getElementById("pickButtonR");
+let pickButtonB = document.getElementById("pickButtonB");
+let pickState = document.getElementById("pickState");
 
 const beatmaps = new Set(); // Store beatmapID;
 
@@ -72,9 +77,12 @@ let chatLen = 0;
 let tempClass = "unknown";
 
 let hasSetup = false;
+let tempTempMapID;
 
 let scoreLeft = [];
 let scoreRight = [];
+
+let tempLastPick = "Blue";
 
 const mods = {
     NM: 0,
@@ -95,35 +103,30 @@ class Beatmap {
         let mappoolContainer = document.getElementById(`${this.mods}`);
 
         this.clicker = document.createElement("div");
-        this.clicker.id = `${this.layerName}Clicker`;
+        this.clicker.id = `${this.layerName}-clicker`;
 
         mappoolContainer.appendChild(this.clicker);
         let clickerObj = document.getElementById(this.clicker.id);
 
-        this.bg = document.createElement("div");
         this.map = document.createElement("div");
         this.overlay = document.createElement("div");
         this.metadata = document.createElement("div");
         this.difficulty = document.createElement("div");
-        this.stats = document.createElement("div");
         this.modIcon = document.createElement("div");
         this.pickedStatus = document.createElement("div");
 
-        this.bg.id = this.layerName;
-        this.map.id = `${this.layerName}BG`;
-        this.overlay.id = `${this.layerName}Overlay`;
-        this.metadata.id = `${this.layerName}META`;
-        this.difficulty.id = `${this.layerName}DIFF`;
-        this.stats.id = `${this.layerName}Stats`;
-        this.modIcon.id = `${this.layerName}ModIcon`;
-        this.pickedStatus.id = `${this.layerName}STATUS`;
+        this.map.id = `${this.layerName}-BG`;
+        this.overlay.id = `${this.layerName}-overlay`;
+        this.metadata.id = `${this.layerName}-metadata`;
+        this.difficulty.id = `${this.layerName}-difficulty`;
+        this.modIcon.id = `${this.layerName}-modicon`;
+        this.pickedStatus.id = `${this.layerName}-status`;
 
         this.metadata.setAttribute("class", "mapInfo");
         this.difficulty.setAttribute("class", "mapInfo");
         this.map.setAttribute("class", "map");
         this.pickedStatus.setAttribute("class", "pickingStatus");
         this.overlay.setAttribute("class", "overlay");
-        this.bg.setAttribute("class", "statBG");
         this.modIcon.setAttribute("class", "modIcon");
         this.modIcon.style.backgroundImage = `url("./static/${this.mods}.png")`;
         this.clicker.setAttribute("class", "clicker");
@@ -132,14 +135,19 @@ class Beatmap {
         document.getElementById(this.map.id).appendChild(this.metadata);
         document.getElementById(this.map.id).appendChild(this.difficulty);
         clickerObj.appendChild(this.pickedStatus);
-        clickerObj.appendChild(this.bg);
-        clickerObj.appendChild(this.stats);
         clickerObj.appendChild(this.modIcon);
 
         this.clicker.style.transform = "translateY(0)";
     }
     grayedOut() {
-        this.overlay.style.opacity = '1';
+        this.overlay.style.opacity = "1";
+    }
+    PickedOn(type) {
+        this.pickedStatus.className = `picked${type}`;
+        this.overlay.style.opacity = "0.5";
+        this.metadata.style.opacity = "1";
+        this.difficulty.style.opacity = "1";
+        this.pickedStatus.innerHTML = "Picked";
     }
 }
 
@@ -147,10 +155,10 @@ let bestOfTemp;
 let scoreVisibleTemp;
 let starsVisibleTemp;
 
-let team1 = "Red",
-    team2 = "Blue";
+let team1 = "",
+    team2 = "";
 
-socket.onmessage = async(event) => {
+socket.onmessage = async (event) => {
     let data = JSON.parse(event.data);
 
     if (team1 !== data.tourney.manager.teamName.left && team2 !== data.tourney.manager.teamName.right) {
@@ -161,39 +169,23 @@ socket.onmessage = async(event) => {
         avaSet = 0;
     }
 
-    if (!avaSet) {
-        avaSet = 1;
-        if (setAvatar(avaLeft, team1)) {
-            avaLeft.style.backgroundImage = "url('./static/left.png')";
-        }
-        if (setAvatar(avaRight, team2)) {
-            avaRight.style.backgroundImage = "url('./static/right.png')";
-        }
-    }
-
     if (!hasSetup) setupBeatmaps();
 
-    if (tempImg !== data.menu.bm.path.full) {
-        tempImg = data.menu.bm.path.full;
-        data.menu.bm.path.full = data.menu.bm.path.full.replace(/#/g, '%23').replace(/%/g, '%25').replace(/\\/g, '/');
-        nowPlayingContainer.style.backgroundImage = `url('http://127.0.0.1:24050/Songs/${data.menu.bm.path.full}?a=${Math.random(10000)}')`;
-    }
-    if (tempMapID !== data.menu.bm.id || tempSR !== data.menu.bm.stats.fullSR) {
+    setTimeout(() => {
+        if (!avaSet) {
+            avaSet = 1;
+            if (!setAvatar(avaLeft, team1) || team1 === "") {
+                avaLeft.style.backgroundImage = "url('./static/left.png')";
+            }
+            if (!setAvatar(avaRight, team2) || team2 === "") {
+                avaRight.style.backgroundImage = "url('./static/right.png')";
+            }
+        }
+    }, 2000);
+
+    if (tempMapID !== data.menu.bm.id) {
         tempMapID = data.menu.bm.id;
-        tempMapArtist = data.menu.bm.metadata.artist;
-        tempMapTitle = data.menu.bm.metadata.title;
-        tempMapDiff = '[' + data.menu.bm.metadata.difficulty + ']';
-        tempMapper = data.menu.bm.metadata.mapper;
-
-        tempCS = data.menu.bm.stats.CS;
-        tempAR = data.menu.bm.stats.AR;
-        tempOD = data.menu.bm.stats.OD;
-        tempHP = data.menu.bm.stats.HP;
-        tempSR = data.menu.bm.stats.fullSR;
-
-        mapName.innerHTML = tempMapArtist + ' - ' + tempMapTitle;
-        mapInfo.innerHTML = `${tempMapDiff}` + '&emsp;&emsp;&emsp;&emsp;' + 'Mapper: ' + tempMapper;
-        stats.innerHTML = 'CS: ' + tempCS + '&emsp;' + 'AR: ' + tempAR + '&emsp;' + 'OD: ' + tempOD + '&emsp;' + 'HP: ' + tempHP + '&emsp;' + 'Star Rating: ' + tempSR + '*';
+        pickedOnManual(tempMapID);
     }
 
     if (starsVisibleTemp !== data.tourney.manager.bools.starsVisible) {
@@ -208,20 +200,22 @@ socket.onmessage = async(event) => {
     }
 
     if (teamNameLeftTemp !== data.tourney.manager.teamName.left) {
-        teamNameLeftTemp = data.tourney.manager.teamName.left.toUpperCase();
+        teamNameLeftTemp = data.tourney.manager.teamName.left;
         teamLeftName.innerHTML = teamNameLeftTemp;
+        pickButtonR.innerHTML = teamNameLeftTemp;
     }
     if (teamNameRightTemp !== data.tourney.manager.teamName.right) {
-        teamNameRightTemp = data.tourney.manager.teamName.right.toUpperCase();
+        teamNameRightTemp = data.tourney.manager.teamName.right;
         teamRightName.innerHTML = teamNameRightTemp;
+        pickButtonB.innerHTML = teamNameRightTemp;
     }
 
     if (bestOfTemp !== data.tourney.manager.bestOF) {
         bestOfTemp = data.tourney.manager.bestOF;
         containerLeft = document.getElementById("scoreContainerLeft");
         containerRight = document.getElementById("scoreContainerRight");
-        containerLeft.innerHTML = '';
-        containerRight.innerHTML = '';
+        containerLeft.innerHTML = "";
+        containerRight.innerHTML = "";
         for (var counter = 0; counter < Math.ceil(bestOfTemp / 2); counter++) {
             scoreLeft[counter] = document.createElement("div");
             scoreLeft[counter].id = `scoreLeft${counter}`;
@@ -239,11 +233,9 @@ socket.onmessage = async(event) => {
         scoreLeftTemp = data.tourney.manager.stars.left;
         for (var i = 0; i < Math.ceil(bestOfTemp / 2); i++) {
             if (i < scoreLeftTemp) {
-                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.backgroundColor = "#de3950";
-                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.borderColor = "#de3950";
+                scoreLeft[i].style.backgroundColor = "#de3950";
             } else if (i >= scoreLeftTemp) {
-                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.backgroundColor = "white";
-                scoreLeft[Math.ceil(bestOfTemp / 2) - 1 - i].style.borderColor = "#de3950";
+                scoreLeft[i].style.backgroundColor = "#15151e";
             }
         }
     }
@@ -252,62 +244,71 @@ socket.onmessage = async(event) => {
         scoreRightTemp = data.tourney.manager.stars.right;
         for (var i = 0; i < Math.ceil(bestOfTemp / 2); i++) {
             if (i < scoreRightTemp) {
-                scoreRight[i].style.backgroundColor = "#2982e3";
-                scoreRight[i].style.borderColor = "#2982e3";
+                scoreRight[Math.ceil(bestOfTemp / 2) - 1 - i].style.backgroundColor = "#2982e3";
             } else if (i >= scoreRightTemp) {
-                scoreRight[i].style.backgroundColor = "white";
-                scoreRight[i].style.borderColor = "#2982e3";
+                scoreRight[Math.ceil(bestOfTemp / 2) - 1 - i].style.backgroundColor = "#15151e";
             }
         }
     }
 
     if (!scoreVisibleTemp) {
-        if (chatLen != data.tourney.manager.chat.length) {
-            // There's new chats that haven't been updated
+        if (data.tourney.manager.chat)
+            if (chatLen != data.tourney.manager.chat.length) {
+                // There's new chats that haven't been updated
 
-            if (chatLen == 0 || (chatLen > 0 && chatLen > data.tourney.manager.chat.length)) {
-                // Starts from bottom
-                chats.innerHTML = "";
-                chatLen = 0;
+                if (chatLen == 0 || (chatLen > 0 && chatLen > data.tourney.manager.chat.length)) {
+                    // Starts from bottom
+                    chats.innerHTML = "";
+                    chatLen = 0;
+                }
+
+                // Add the chats
+                for (var i = chatLen; i < data.tourney.manager.chat.length; i++) {
+                    tempClass = data.tourney.manager.chat[i].team;
+
+                    // Chat variables
+                    let chatParent = document.createElement("div");
+                    chatParent.setAttribute("class", "chat");
+
+                    let chatTime = document.createElement("div");
+                    chatTime.setAttribute("class", "chatTime");
+
+                    let chatName = document.createElement("div");
+                    chatName.setAttribute("class", "chatName");
+
+                    let chatText = document.createElement("div");
+                    chatText.setAttribute("class", "chatText");
+
+                    chatTime.innerText = data.tourney.manager.chat[i].time;
+                    chatName.innerText = data.tourney.manager.chat[i].name + ":\xa0";
+                    chatText.innerText = data.tourney.manager.chat[i].messageBody;
+
+                    chatName.classList.add(tempClass);
+
+                    chatParent.append(chatTime);
+                    chatParent.append(chatName);
+                    chatParent.append(chatText);
+                    chats.append(chatParent);
+                }
+
+                // Update the Length of chat
+                chatLen = data.tourney.manager.chat.length;
+
+                // Update the scroll so it's sticks at the bottom by default
+                chats.scrollTop = chats.scrollHeight;
             }
-
-            // Add the chats
-            for (var i = chatLen; i < data.tourney.manager.chat.length; i++) {
-                tempClass = data.tourney.manager.chat[i].team;
-
-                // Chat variables
-                let chatParent = document.createElement('div');
-                chatParent.setAttribute('class', 'chat');
-
-                let chatTime = document.createElement('div');
-                chatTime.setAttribute('class', 'chatTime');
-
-                let chatName = document.createElement('div');
-                chatName.setAttribute('class', 'chatName');
-
-                let chatText = document.createElement('div');
-                chatText.setAttribute('class', 'chatText');
-
-                chatTime.innerText = data.tourney.manager.chat[i].time;
-                chatName.innerText = data.tourney.manager.chat[i].name + ":\xa0";
-                chatText.innerText = data.tourney.manager.chat[i].messageBody;
-
-                chatName.classList.add(tempClass);
-
-                chatParent.append(chatTime);
-                chatParent.append(chatName);
-                chatParent.append(chatText);
-                chats.append(chatParent);
-            }
-
-            // Update the Length of chat
-            chatLen = data.tourney.manager.chat.length;
-
-            // Update the scroll so it's sticks at the bottom by default
-            chats.scrollTop = chats.scrollHeight;
-        }
     }
 };
+
+pickButtonR.addEventListener("click", () => {
+    pickState.innerHTML = "First Team to pick: " + pickButtonR.innerHTML;
+    tempLastPick = "Blue";
+});
+
+pickButtonB.addEventListener("click", () => {
+    pickState.innerHTML = "First Team to pick: " + pickButtonB.innerHTML;
+    tempLastPick = "Red";
+});
 
 async function setupBeatmaps() {
     hasSetup = true;
@@ -340,137 +341,61 @@ async function setupBeatmaps() {
     let row = -1;
     let preMod = 0;
     let colIndex = 0;
-    bms.map(async(beatmap, index) => {
+    bms.map(async (beatmap, index) => {
         if (beatmap.mods !== preMod || colIndex % 3 === 0) {
             preMod = beatmap.mods;
             colIndex = 0;
             row++;
         }
-        let oddRow = Math.round(modsCount[beatmap.mods] / 3) + 1;
-        let leftCol = modsCount[beatmap.mods] % 3;
-        const bm = new Beatmap(beatmap.mods, beatmap.beatmapId, `map${index}`);
+        const bm = new Beatmap(beatmap.mods, beatmap.beatmapId, `id-${beatmap.beatmapId}`);
         bm.generate();
-        bm.clicker.onmouseover = function() {
+        bm.clicker.onmouseover = function () {
             bm.clicker.style.transform = "translateY(-5px)";
         };
-        bm.clicker.onmouseleave = function() {
+        bm.clicker.onmouseleave = function () {
             bm.clicker.style.transform = "translateY(0px)";
         };
-        bm.clicker.addEventListener("mousedown", function() {
-            bm.clicker.addEventListener("click", function(event) {
+        bm.clicker.addEventListener("mousedown", function () {
+            bm.clicker.addEventListener("click", function (event) {
                 if (event.shiftKey) {
-                    bm.pickedStatus.style.color = "#de3950";
-                    bm.pickedStatus.style.backgroundColor = "rgba(0, 0, 0, 0)";
-                    bm.pickedStatus.style.top = "0px";
-                    bm.pickedStatus.style.left = "0px";
-                    bm.pickedStatus.style.width = "500px";
-                    bm.pickedStatus.style.height = "60px";
-                    bm.pickedStatus.style.lineHeight = "60px";
-                    bm.pickedStatus.style.fontSize = "25px";
+                    bm.pickedStatus.className = "bannedRed";
                     bm.overlay.style.opacity = "0.8";
                     bm.metadata.style.opacity = "0.3";
                     bm.difficulty.style.opacity = "0.3";
-                    bm.stats.style.opacity = "0";
-                    bm.bg.style.opacity = "0";
-                    bm.pickedStatus.style.textShadow = "0 0 10px black";
-                    setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "1";
-                        bm.pickedStatus.innerHTML = `Banned by ${team1}`;
-                    }, 150);
+                    bm.pickedStatus.innerHTML = `Banned by ${team1}`;
                 } else if (event.ctrlKey) {
                     bm.overlay.style.opacity = "0.5";
                     bm.metadata.style.opacity = "1";
                     bm.difficulty.style.opacity = "1";
-                    bm.stats.style.opacity = "1";
-                    bm.bg.style.opacity = "1";
-                    bm.pickedStatus.style.left = "100px";
-                    bm.pickedStatus.style.opacity = "0";
-                    bm.pickedStatus.style.backgroundColor = "rgba(0,0,0,0)";
-                    setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "1";
-                        bm.pickedStatus.innerHTML = "";
-                    }, 150);
+                    bm.pickedStatus.className = "pickedStatus";
+                    bm.pickedStatus.innerHTML = "";
                 } else {
-                    bm.pickedStatus.style.color = "#fff";
-                    bm.pickedStatus.style.backgroundColor = "#de3950";
-                    bm.pickedStatus.style.top = "50px";
-                    bm.pickedStatus.style.left = "0px";
-                    bm.pickedStatus.style.width = "100px";
-                    bm.pickedStatus.style.height = "20px";
-                    bm.pickedStatus.style.lineHeight = "20px";
-                    bm.pickedStatus.style.fontSize = "13px";
-                    bm.overlay.style.opacity = "0.5";
-                    bm.metadata.style.opacity = "1";
-                    bm.difficulty.style.opacity = "1";
-                    bm.stats.style.opacity = "1";
-                    bm.bg.style.opacity = "1";
-                    bm.pickedStatus.style.textShadow = "0 0 0 rgba(0,0,0,0)";
-                    setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "1";
-                        bm.pickedStatus.innerHTML = "Picked";
-                    }, 150);
+                    bm.PickedOn("Red");
                 }
             });
-            bm.clicker.addEventListener("contextmenu", function(event) {
+            bm.clicker.addEventListener("contextmenu", function (event) {
                 if (event.shiftKey) {
-                    bm.pickedStatus.style.color = "#2982e3";
-                    bm.pickedStatus.style.backgroundColor = "rgba(0, 0, 0, 0)";
-                    bm.pickedStatus.style.top = "0px";
-                    bm.pickedStatus.style.left = "0px";
-                    bm.pickedStatus.style.width = "500px";
-                    bm.pickedStatus.style.height = "60px";
-                    bm.pickedStatus.style.lineHeight = "60px";
-                    bm.pickedStatus.style.fontSize = "25px";
+                    bm.pickedStatus.className = "bannedBlue";
                     bm.overlay.style.opacity = "0.8";
                     bm.metadata.style.opacity = "0.3";
                     bm.difficulty.style.opacity = "0.3";
-                    bm.stats.style.opacity = "0";
-                    bm.bg.style.opacity = "0";
-                    bm.pickedStatus.style.textShadow = "0 0 10px black";
-                    setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "1";
-                        bm.pickedStatus.innerHTML = `Banned by ${team2}`;
-                    }, 150);
+                    bm.pickedStatus.innerHTML = `Banned by ${team2}`;
                 } else if (event.ctrlKey) {
                     bm.overlay.style.opacity = "0.5";
                     bm.metadata.style.opacity = "1";
                     bm.difficulty.style.opacity = "1";
-                    bm.stats.style.opacity = "1";
-                    bm.bg.style.opacity = "1";
-                    bm.pickedStatus.style.left = "100px";
-                    bm.pickedStatus.style.opacity = "0";
-                    bm.pickedStatus.style.backgroundColor = "rgba(0,0,0,0)";
-                    setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "1";
-                        bm.pickedStatus.innerHTML = "";
-                    }, 150);
+                    bm.pickedStatus.className = "pickedStatus";
+                    bm.pickedStatus.innerHTML = "";
                 } else {
-                    bm.pickedStatus.style.color = "#fff";
-                    bm.pickedStatus.style.backgroundColor = "#2982e3";
-                    bm.pickedStatus.style.top = "50px";
-                    bm.pickedStatus.style.left = "0px";
-                    bm.pickedStatus.style.width = "100px";
-                    bm.pickedStatus.style.height = "20px";
-                    bm.pickedStatus.style.lineHeight = "20px";
-                    bm.pickedStatus.style.fontSize = "13px";
-                    bm.overlay.style.opacity = "0.5";
-                    bm.metadata.style.opacity = "1";
-                    bm.difficulty.style.opacity = "1";
-                    bm.stats.style.opacity = "1";
-                    bm.bg.style.opacity = "1";
-                    bm.pickedStatus.style.textShadow = "0 0 0 rgba(0,0,0,0)";
-                    setTimeout(function() {
-                        bm.pickedStatus.style.opacity = "1";
-                        bm.pickedStatus.innerHTML = "Picked";
-                    }, 150);
+                    bm.PickedOn("Blue");
                 }
             });
         });
-        const mapData = await getDataSet(beatmap.beatmapId);
+        let mapData = await getDataSet(beatmap.beatmapId);
+        while (!mapData) await getDataSet(beatmap.beatmapId);
         bm.map.style.backgroundImage = `url('https://assets.ppy.sh/beatmaps/${mapData.beatmapset_id}/covers/cover.jpg')`;
-        bm.metadata.innerHTML = mapData.artist + ' - ' + mapData.title;
-        bm.difficulty.innerHTML = `[${mapData.version}]` + '&emsp;&emsp;Mapper: ' + mapData.creator;
-        bm.bg.innerHTML = "CS: " + mapData.diff_size + '&emsp;AR: ' + mapData.diff_approach + '&emsp;OD: ' + mapData.diff_overall + '&emsp;HP: ' + mapData.diff_drain + '&emsp;SR: ' + parseFloat(mapData.difficultyrating).toFixed(2) + '*';
+        bm.metadata.innerHTML = mapData.artist + " - " + mapData.title;
+        bm.difficulty.innerHTML = `[${mapData.version}]` + "&emsp;&emsp;Mapper: " + mapData.creator;
         beatmaps.add(bm);
     });
 }
@@ -490,9 +415,12 @@ async function getDataSet(beatmapID) {
     } catch (error) {
         console.error(error);
     }
-};
+}
 
 async function setAvatar(element, username) {
+    if (username === "");
+        return false;
+
     const data = await getUserDataSet(username);
     if (data !== null) {
         element.style.backgroundImage = `url("http://s.ppy.sh/a/${data.user_id}")`;
@@ -516,5 +444,21 @@ async function getUserDataSet(name) {
         return data.length !== 0 ? data[0] : null;
     } catch (error) {
         console.error(error);
+    }
+}
+
+pickedOnManual = (id) => {
+    tempLastPick = tempLastPick === "Red" ? "Blue" : "Red";
+    if (document.getElementById(`id-${id}-clicker`)) {
+        let pickedStatus = document.getElementById(`id-${id}-status`);
+        let overlay = document.getElementById(`id-${id}-overlay`);
+        let metadata = document.getElementById(`id-${id}-metadata`);
+        let difficulty = document.getElementById(`id-${id}-difficulty`);
+
+        pickedStatus.className = `picked${tempLastPick}`;
+        overlay.style.opacity = "0.5";
+        metadata.style.opacity = "1";
+        difficulty.style.opacity = "1";
+        pickedStatus.innerHTML = "Picked";
     }
 };

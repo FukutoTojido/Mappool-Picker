@@ -15,10 +15,12 @@
 <body>
     <div id="main">
         <div id="teamName">
-            <div id="teamLeftName" class="teamName"></div>
-            <div id="teamRightName" class="teamName"></div>
-            <div id="scoreContainerLeft"></div>
-            <div id="scoreContainerRight"></div>
+            <div id="nameScoreContainer">
+                <div id="teamLeftName" class="teamName"></div>
+                <div id="teamRightName" class="teamName"></div>
+                <div id="scoreContainerLeft"></div>
+                <div id="scoreContainerRight"></div>
+            </div>
             <div id="avatarLeft" class="avatar"></div>
             <div id="avatarRight" class="avatar"></div>
         </div>
@@ -32,13 +34,12 @@
         </div>
         <div id="bottom">
             <div id="chats"></div>
-            <div id="nowPlayingContainer">
-                <div id="overlay"></div>
-                <div id="mapName"></div>
-                <div id="mapInfo"></div>
-                <div id="stats"></div>
-            </div>
         </div>
+    </div>
+    <div id="sideBar">
+        <div id="pickButtonR" class="pickButton"></div>
+        <div id="pickButtonB" class="pickButton"></div>
+        <div id="pickState">First Team to pick: </div>
     </div>
     <script src="index.js"></script>
 </body>

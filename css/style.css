@@ -33,6 +33,11 @@
     src: url("../fonts/MADE\ Evolve\ Sans\ Bold.otf");
 }
 
+@font-face {
+    font-family: "Torus";
+    src: url("../fonts/Torus-Regular.otf");
+}
+
 body,
 html {
     padding: 0;
@@ -42,6 +47,7 @@ html {
 }
 
 #main {
+    float: left;
     font-size: 30px;
     font-family: Nexa Bold, Helvetica, sans-serif;
     font-weight: normal;
@@ -49,7 +55,7 @@ html {
     width: 1920px;
     height: 1080px;
     position: relative;
-    background-image: url('../static/Background.png');
+    /* background-image: url('../static/Background.png'); */
     /*text-shadow: 0px 0px 8px black;*/
 }
 
@@ -67,6 +73,16 @@ html {
     margin-right: -5px !important;
 }
 
+#nameScoreContainer{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+    width: 100%;
+    height: 85px;
+}
+
 #scoreNowLeft,
 #scoreNowRight {
     font-size: 80px !important;
@@ -76,35 +92,42 @@ html {
 
 .teamName {
     position: absolute;
-    font-family: Sabang;
-    top: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
-    height: 70px;
-    line-height: 70px;
-    font-size: 70px;
+    font-family: Torus;
+    /* bottom: 30px; */
+    padding-left: 30px;
+    padding-right: 30px;
+    height: 50px;
+    line-height: 50px;
+    font-size: 30px;
     transition: ease-in-out 500ms;
+    color: white;
+    border-radius: 25px;
+
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.70);
 }
 
-#teamLeftName {
-    text-align: right;
-    right: 1230px;
-}
-
-#teamRightName {
+#teamLeftName.teamName {
     text-align: left;
-    left: 1230px;
+    left: 150px;
+    /* background-color: #de3950; */
+}
+
+#teamRightName.teamName {
+    text-align: right;
+    right: 150px;
+    /* background-color: #2982e3; */
 }
 
 #teamName {
     position: absolute;
+    display: flex;
+    align-content: center;
     width: 100%;
     height: 120px;
-    background-color: #161616;
-    background-image: url('../static/topBar.png');
-    background-size: 100%;
+    /* background-color: #fff; */
+    /* background-image: url('../static/topBar.png'); */
     top: 0px;
-    box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.20);
+    color: #161616;
 }
 
 .background--light {
@@ -119,43 +142,40 @@ html {
 #scoreContainerRight {
     position: absolute;
     display: flex;
-    height: 26px;
-    bottom: 10px;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    height: 15px;
+    top: 60px;
+    /* padding-top: 5px;
+    padding-bottom: 5px; */
     transition: ease-in-out 100ms
 }
 
 #scoreContainerLeft {
     justify-content: flex-end;
-    padding-right: 10px;
-    right: 1230px;
+    left: 150px;
 }
 
 #scoreContainerRight {
-    justify-content: flex-start;
-    padding-left: 10px;
-    left: 1230px;
+    /* justify-content: flex-end; */
+    right: 150px;
 }
 
 .scoreLeft,
 .scoreRight {
-    width: 50px;
-    height: 20px;
-    background-color: white;
-    border-style: solid;
-    border-color: #999;
-    border-width: 3px;
-    transition: ease-in-out 100ms
+    width: 45px;
+    height: 15px;
+    background-color: #15151e;
+    transition: ease-in-out 100ms;
+    border-radius: 5px;
 }
 
 .scoreLeft {
     flex-wrap: wrap-reverse;
-    margin-left: 10px;
+    margin-right: 10px;
 }
 
 .scoreRight {
-    margin-right: 10px;
+    /* flex-wrap: wrap-reverse; */
+    margin-left: 10px;
 }
 
 .avatar {
@@ -181,9 +201,10 @@ html {
 
 #mappoolContainer {
     position: absolute;
-    top: 150px;
+    top: 120px;
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     width: 100%;
 }
 
@@ -192,39 +213,55 @@ html {
     justify-content: space-evenly;
     flex-wrap: wrap;
     width: 100%;
-    margin-bottom: 20px;
+}
+
+.clicker {
+    width: 550px;
+    height: 70px;
+    margin: 5px;
+    transition: ease-in-out 300ms;
 }
 
 .map {
     display: flex;
     flex-wrap: wrap;
-    align-content: flex-start;
+    align-content: center;
     gap: 5px;
-    width: 500px;
-    height: 60px;
+    width: 100%;
+    height: 100%;
     background-color: #161616;
     background-size: 100%;
     background-position: center center;
     color: #161616;
     border-radius: 10px;
-    box-shadow: 0px 5px 20px -3px black;
+    box-shadow: 0px 5px 10px -5px black;
     transition: ease-in-out 200ms;
+}
+
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(0, 0, 0);
+    border-radius: 10px;
+    opacity: 0.5;
 }
 
 .mapInfo {
     width: 100%;
     margin-left: 20px;
     margin-right: 20px;
-    transform: translateY(8px);
     color: #fff;
-    font-family: Exo2;
-    font-size: 14px;
+    font-family: Torus;
+    font-size: 16px;
+    font-weight: 700;
     text-shadow: 0 2px 3px black;
     user-select: none;
     transition: ease-in-out 200ms;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    z-index: 1;
 }
 
 .pickingStatus {
@@ -241,44 +278,87 @@ html {
     transition: ease-in-out 300ms;
     opacity: 0;
     border-radius: 25px;
-    text-shadow: 0 0 10px black
+    text-shadow: 0 0 10px black;
 }
 
-.overlay {
+.bannedRed {
     position: absolute;
-    width: 100%;
-    height: 60px;
-    background-color: #000;
-    border-radius: 10px;
-    opacity: 0.5;
-    transition: ease-in-out 200ms;
+    color: #de3950;
+    background-color: rgba(0, 0, 0, 0);
+    top: 0;
+    left: 0;
+    width: 550px;
+    height: 70px;
+    line-height: 70px;
+    font-size: 25px;
+    opacity: 1;
+    border-radius: 25px;
+    text-align: center;
+    text-shadow: 0 0 10px black;
+    user-select: none;
+    transition: ease-in-out 300ms;
+    z-index: 2;
 }
 
-.statBG {
+.bannedBlue {
     position: absolute;
-    top: 50px;
-    left: 150px;
-    width: 350px;
+    color: #2982e3;
+    background-color: rgba(0, 0, 0, 0);
+    top: 0;
+    left: 0;
+    width: 550px;
+    height: 70px;
+    line-height: 70px;
+    font-size: 25px;
+    opacity: 1;
+    border-radius: 25px;
+    text-align: center;
+    text-shadow: 0 0 10px black;
+    user-select: none;
+    transition: ease-in-out 300ms;
+    z-index: 2;
+}
+
+.pickedRed {
+    position: absolute;
+    bottom: -10px;
+    left: 0px;
+    width: 100px;
     height: 20px;
-    background-color: #161616;
     color: #fff;
-    border-radius: 15px;
-    box-shadow: 0px 5px 20px -3px black;
-    margin-left: 20px;
-    margin-right: 20px;
+    background-color: #de3950;
     line-height: 20px;
-    font-family: Exo2;
-    font-size: 13px;
-    line-height: 20px;
-    text-shadow: 0 2px 3px black;
+    font-size: 12px;
     text-align: center;
     user-select: none;
-    transition: ease-in-out 200ms
+    transition: ease-in-out 300ms;
+    opacity: 1;
+    border-radius: 25px;
+}
+
+.pickedBlue {
+    position: absolute;
+    bottom: -10px;
+    left: 0px;
+    width: 100px;
+    height: 20px;
+    color: #fff;
+    background-color: #2982e3;
+    line-height: 20px;
+    font-size: 12px;
+    text-align: center;
+    user-select: none;
+    transition: ease-in-out 300ms;
+    opacity: 1;
+    border-radius: 25px;
 }
 
 .modIcon {
     position: absolute;
-    top: 10px;
+    top: 0;
+    bottom: 0;
+    margin-top: auto;
+    margin-bottom: auto;
     right: -22px;
     width: 44px;
     height: 31px;
@@ -290,50 +370,44 @@ html {
     transition: ease-in-out 200ms;
 }
 
-.clicker {
-    width: 500px;
-    height: 80px;
-    transition: ease-in-out 300ms;
-}
-
 #bottom {
     position: absolute;
     width: 100%;
-    height: 120px;
+    height: 150px;
     bottom: 0px;
-    box-shadow: 0 -10px 10px 0 rgba(0, 0, 0, 0.5);
 }
 
 #stats {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -30px;
+    bottom: -50px;
     margin-left: auto;
     margin-right: auto;
     width: 100%;
-    height: 30px;
+    height: 50px;
     text-align: center;
     align-content: center;
     background-color: #161616;
     user-select: none;
-    font-family: Exo2;
-    font-size: 15px;
-    line-height: 30px;
+    font-family: Torus;
+    font-size: 18px;
+    line-height: 50px;
     color: #fff;
     transition: ease-in-out 500ms;
 }
 
 #nowPlayingContainer {
     position: absolute;
-    font-family: Exo2;
-    left: 50%;
+    font-family: Torus;
+    font-weight: 700;
+    left: 0;
     right: 0;
     margin-left: auto;
     margin-right: auto;
-    bottom: 30px;
-    width: 50%;
-    height: 90px;
+    bottom: 50px;
+    width: 30%;
+    height: 110px;
     text-align: center;
     align-content: center;
     background-color: black;
@@ -358,7 +432,7 @@ html {
     overflow: hidden;
     text-overflow: ellipsis;
     z-index: 0;
-    font-size: 18px;
+    font-size: 25px;
     text-shadow: 0 3px 5px black;
 }
 
@@ -379,15 +453,18 @@ html {
     position: absolute;
     left: 0;
     bottom: 0;
-    width: 50%;
-    height: 110px;
+    width: 1890px;
+    height: 210px;
+    margin: 15px;
     overflow-y: scroll;
     overflow-x: hidden;
     padding-top: 5px;
     padding-bottom: 5px;
     font-size: 18px;
-    font-family: Gothic-b, monospace;
+    font-family: Torus, monospace;
     transition: ease-in-out 500ms;
+    border-radius: 10px;
+    box-shadow: 0px 10px 10px -5px rgba(0, 0, 0, 0.5);
 }
 
 .chat {
@@ -455,11 +532,59 @@ html {
 /* Handle */
 
 ::-webkit-scrollbar-thumb {
-    background: grey;
+    background: none;
     border-radius: 10px;
 }
 
 .text {
     display: flex;
     justify-content: center;
+}
+
+#sideBar {
+    float: left;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-wrap: wrap;
+    background-color: #15151e;
+    width: 500px;
+    height: 1080px;
+    color: white;
+    font-family: Torus;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+#pickState {
+    margin: 10px;
+}
+
+.pickButton {
+    width: 300px;
+    height: 50px;
+    margin: 10px;
+    line-height: 50px;
+    text-align: center;
+    color: white;
+    font-family: Torus;
+    font-size: 25px;
+    font-weight: 700;
+    background-color: #2a2a3a;
+    border-radius: 10px;
+    transition: ease-in-out 200ms;
+}
+
+.pickButton:hover{
+    transform: translateY(-5px);
+}
+
+#pickButtonR:hover{
+    background-color: #de3950;
+    box-shadow: 0 5px 10px -5px #de3950;
+}
+
+#pickButtonB:hover{
+    background-color: #2982e3;
+    box-shadow: 0 5px 10px -5px #2982e3;
 }
