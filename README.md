@@ -8,4 +8,4 @@
 - Add 'http://127.0.0.1:24050/Mappool%20Picker/' as a Browser Source in OBS
 - Done
 ## Screenshot Preview
-![preview](https://bit.ly/2SoOWSn)
+![preview](https://i.imgur.com/jyupUU2.png)
